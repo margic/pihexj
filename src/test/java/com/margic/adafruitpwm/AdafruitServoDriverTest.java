@@ -36,7 +36,4 @@ public class AdafruitServoDriverTest {
 
         assertEquals(30, prescale);
     }
-
-
-
 }
