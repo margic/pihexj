@@ -1,5 +1,6 @@
 package com.margic.adafruitpwm;
 
+import com.margic.servo4j.PCA9685Device;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -11,7 +12,25 @@ public class AdafruitServoDriverTest {
 
     @Test
     public void testGetPreScale(){
-        AdafruitServoDriver driver = new AdafruitServoDriver(null);
+        PCA9685Device device = new PCA9685Device() {
+            @Override
+            public String getDeviceName() {
+                return "Test Device";
+            }
+
+            @Override
+            public void init() {
+
+            }
+
+            @Override
+            public void setAllServos(int[] servoPulseArray) {
+
+            }
+        };
+
+
+        AdafruitServoDriver driver = new AdafruitServoDriver(device);
 
         byte prescale = driver.getPreScale(200);
 

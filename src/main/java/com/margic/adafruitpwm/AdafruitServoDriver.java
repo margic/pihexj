@@ -1,7 +1,7 @@
 package com.margic.adafruitpwm;
 
+import com.margic.servo4j.PCA9685Device;
 import com.margic.servo4j.ServoDriver;
-import com.pi4j.io.i2c.I2CDevice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,14 +25,12 @@ public class AdafruitServoDriver implements ServoDriver {
     public static final int MODE1_REGISTER = 0x00;
     public static final int PRE_SCALE_REGISTER = 0xFE;
 
-    // in my use case a hex robot I will need more than one device. or possibly two driver instances. not sure yet
-    // but I'll fix that whenever I get to that point.
-    private I2CDevice i2CDevice;
+    private PCA9685Device device;
 
     @Inject
-    public AdafruitServoDriver(I2CDevice i2CDevice){
-        log.debug("Creating new servo driver {}", getDriverName());
-        this.i2CDevice = i2CDevice;
+    public AdafruitServoDriver(PCA9685Device device) {
+        log.debug("Creating new servo driver {} for device {}", getDriverName(), device.getDeviceName());
+        this.device = device;
     }
 
     @Override
@@ -42,14 +40,15 @@ public class AdafruitServoDriver implements ServoDriver {
 
     /**
      * The hardware forces a minimum value that can be loaded into the PRE_SCALE register
-     at ‘3’. The PRE_SCALE register defines the frequency at which the outputs modulate. The
-     prescale value is determined with the formula shown in Equation 1:
-     (1) prescaleVal = round(oscClock/(4096 * updateRate)) - 1
-     where the update rate is the output modulation frequency required. For example, for an
-     output frequency of 200 Hz with an oscillator clock frequency of 25 MHz:
-     (2) prescaleVal = round(25000000 / (4096 * 200)) - 1 = 30
-     The PRE_SCALE register can only be set when the SLEEP bit of MODE1 register is set to
-     logic 1.
+     * at ‘3’. The PRE_SCALE register defines the frequency at which the outputs modulate. The
+     * prescale value is determined with the formula shown in Equation 1:
+     * (1) prescaleVal = round(oscClock/(4096 * updateRate)) - 1
+     * where the update rate is the output modulation frequency required. For example, for an
+     * output frequency of 200 Hz with an oscillator clock frequency of 25 MHz:
+     * (2) prescaleVal = round(25000000 / (4096 * 200)) - 1 = 30
+     * The PRE_SCALE register can only be set when the SLEEP bit of MODE1 register is set to
+     * logic 1.
+     *
      * @param frequency the frequency in hertz
      */
     @Override
@@ -59,7 +58,6 @@ public class AdafruitServoDriver implements ServoDriver {
         // Writes to PRE_SCALE register are blocked when SLEEP bit is logic 0 (MODE 1)
         log.debug("Read MODE 1 Register");
         //int origMode1 =
-
 
 
 //        double prescaleval = 25000000.0;
@@ -78,7 +76,7 @@ public class AdafruitServoDriver implements ServoDriver {
 //        write(MODE1, (byte) (oldmode | 0x80));
     }
 
-    public byte getPreScale(int frequency){
+    public byte getPreScale(int frequency) {
         log.debug("Get prescale value for frequency {}", frequency);
 
         double prescaleval = CLOCK_FREQUENCY;
@@ -86,10 +84,14 @@ public class AdafruitServoDriver implements ServoDriver {
         prescaleval /= frequency;
         prescaleval -= 1.0;
         log.debug("Estimated pre-scale {}", prescaleval);
-        byte prescale = (byte)Math.floor(prescaleval + 0.5);
+        byte prescale = (byte) Math.floor(prescaleval + 0.5);
         log.debug("Final pre-scale {}", prescale);
 
         return prescale;
     }
 
+    @Override
+    public void setPulse(int pulseLength) {
+
+    }
 }

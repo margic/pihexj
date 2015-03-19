@@ -2,6 +2,7 @@ package com.margic.pihex;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import com.margic.adafruitpwm.AdaPCA9685Device;
 import com.margic.adafruitpwm.AdafruitServoDriver;
 import com.margic.servo4j.ServoDriver;
 import com.pi4j.io.i2c.I2CBus;
@@ -46,15 +47,17 @@ public class PihexModule extends AbstractModule {
 
     @Singleton
     @Provides
-    public I2CDevice provideI2CDevice(Configuration config){
+    public ServoDriver providerServoDriver(Configuration config){
         I2CDevice device = null;
         try {
             I2CBus bus = I2CFactory.getInstance(config.getInt(I2C_BUS_PROP, 1));
             device = bus.getDevice(config.getInt(I2C_ADDRESS_PROP, 0x40));
-            device.
         }catch (IOException ioe){
             log.error("Unable to get I2CDevice", ioe);
+            return null;
         }
-        return device;
+        AdaPCA9685Device pca9685Device = new AdaPCA9685Device(device);
+        AdafruitServoDriver servoDriver = new AdafruitServoDriver(pca9685Device);
+        return servoDriver;
     }
 }

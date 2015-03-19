@@ -146,4 +146,21 @@ public interface PCA9685Device {
     public static final int MODE2_INVERTED = 0x10; // 0 output logic state not inverted use when external driver is used, 1 state not inverted use when no external driver is used
     public static final int MODE2_OCH = 0x08; // 0 outputs change on STOP command, 1 outputs change on ACK command
     public static final int OUTDRV = 0x04; // 0 outputs configured with open drain, 1 outputs configured with totem pole
+
+    /**
+     * return the name of this device implementation
+     * @return
+     */
+    public String getDeviceName();
+
+    /**
+     * initialize the device
+     */
+    public void init();
+
+    /**
+     * Sets all the servoce on the PCA9685 using auto increment
+     * this should accept an array of servo angles one for each servo on the device
+     */
+    public void setAllServos(int[] servoPulseArray);
 }

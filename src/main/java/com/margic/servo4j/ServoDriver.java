@@ -16,4 +16,10 @@ public interface ServoDriver {
      * @param frequency the frequency in hertz
      */
     public void setPWMFrequency(int frequency);
+
+    /**
+     * sets the pulse length for a servo
+     * @param pulseLength
+     */
+    public void setPulse(int pulseLength);
 }
