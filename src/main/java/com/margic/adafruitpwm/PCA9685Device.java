@@ -159,15 +159,37 @@ public interface PCA9685Device {
     public void init();
 
     /**
-     * Sets all the led channels on the PCA9685 using auto increment
-     * this should accept an array of pulse lengths one for each servo on the device
+     * Write a single value to the register at address
+     * @param address of register
+     * @param value value to write to the register
      */
-    public void setAllLEDPulse(int[] servoPulseArray);
+    public void writeRegister(int address, byte value);
 
     /**
-     * Sets the pulse length of specified led channel
-     * @param ledChannel
-     * @param pulseLength
+     * Write multiple values to the device in one stream starting at register at startAddress
+     * and incrementing the register address for each value
+     *
+     * @param startAddress start register address
+     * @param values array of bytes to write to registers starting with start address
      */
-    public void setLEDPulse(int ledChannel, int pulseLength);
+    public void writeRegisters(int startAddress, byte[] values);
+
+    /**
+     * Read the value from the specified address
+     * @param address
+     * @return
+     */
+    public byte readRegister(int address);
+
+    /**
+     * Read the values from multiple addresses starting at the start address
+     * into the buffer provided
+     * at the offset specified
+     * and size number of bytes
+     * in PCA9685 this requires auto incrementing registers
+     * @param startAddress the start register address
+     *
+     * @return number of bytes read
+     */
+    public int readRegisters(int startAddress, byte[] buffer, int offset, int size);
 }

@@ -32,12 +32,21 @@ public class AdaPCA9685Device implements PCA9685Device {
     }
 
     @Override
-    public void setAllLEDPulse(int[] servoPulseArray) {
+    public void writeRegister(int address, byte value) {
+    }
+
+    @Override
+    public void writeRegisters(int startAddress, byte[] values) {
 
     }
 
     @Override
-    public void setLEDPulse(int ledChannel, int pulseLength) {
+    public byte readRegister(int address) {
+        return 0;
+    }
 
+    @Override
+    public int readRegisters(int startAddress, byte[] buffer, int offset, int size) {
+        return 0;
     }
 }

@@ -30,6 +30,7 @@ public class AdafruitServoDriver implements ServoDriver {
     public AdafruitServoDriver(PCA9685Device device) {
         log.debug("Creating new servo driver {} for device {}", getDriverName(), device.getDeviceName());
         this.device = device;
+        device.init();
     }
 
     @Override
