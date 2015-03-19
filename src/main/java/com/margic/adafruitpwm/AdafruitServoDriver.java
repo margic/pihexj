@@ -1,6 +1,5 @@
 package com.margic.adafruitpwm;
 
-import com.margic.servo4j.PCA9685Device;
 import com.margic.servo4j.ServoDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

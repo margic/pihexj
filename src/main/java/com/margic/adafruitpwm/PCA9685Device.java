@@ -1,4 +1,4 @@
-package com.margic.servo4j;
+package com.margic.adafruitpwm;
 
 /**
  * Created by paulcrofts on 3/18/15.
@@ -159,8 +159,15 @@ public interface PCA9685Device {
     public void init();
 
     /**
-     * Sets all the servoce on the PCA9685 using auto increment
-     * this should accept an array of servo angles one for each servo on the device
+     * Sets all the led channels on the PCA9685 using auto increment
+     * this should accept an array of pulse lengths one for each servo on the device
      */
-    public void setAllServos(int[] servoPulseArray);
+    public void setAllLEDPulse(int[] servoPulseArray);
+
+    /**
+     * Sets the pulse length of specified led channel
+     * @param ledChannel
+     * @param pulseLength
+     */
+    public void setLEDPulse(int ledChannel, int pulseLength);
 }

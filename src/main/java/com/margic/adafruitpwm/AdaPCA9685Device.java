@@ -1,6 +1,5 @@
 package com.margic.adafruitpwm;
 
-import com.margic.servo4j.PCA9685Device;
 import com.pi4j.io.i2c.I2CDevice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +32,12 @@ public class AdaPCA9685Device implements PCA9685Device {
     }
 
     @Override
-    public void setAllServos(int[] servoPulseArray) {
+    public void setAllLEDPulse(int[] servoPulseArray) {
+
+    }
+
+    @Override
+    public void setLEDPulse(int ledChannel, int pulseLength) {
 
     }
 }

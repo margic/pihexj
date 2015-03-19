@@ -1,5 +1,7 @@
 package com.margic.servo4j;
 
+import com.margic.pihex.Servo;
+
 /**
  * Created by paulcrofts on 3/15/15.
  */
