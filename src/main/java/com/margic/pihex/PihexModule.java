@@ -51,6 +51,7 @@ public class PihexModule extends AbstractModule {
         try {
             I2CBus bus = I2CFactory.getInstance(config.getInt(I2C_BUS_PROP, 1));
             device = bus.getDevice(config.getInt(I2C_ADDRESS_PROP, 0x40));
+            device.
         }catch (IOException ioe){
             log.error("Unable to get I2CDevice", ioe);
         }
