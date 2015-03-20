@@ -1,6 +1,5 @@
 package com.margic.adafruitpwm;
 
-import com.margic.adafruitpwm.mock.MockPCA9685Device;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;

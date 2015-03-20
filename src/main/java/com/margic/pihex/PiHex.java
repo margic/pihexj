@@ -2,6 +2,7 @@ package com.margic.pihex;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.margic.servo4j.ServoDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +16,6 @@ public class PiHex {
         log.info("Starting PiHex application");
         Injector injector = Guice.createInjector(new PihexModule());
 
-
+        ServoDriver driver = injector.getInstance(ServoDriver.class);
     }
 }

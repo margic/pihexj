@@ -1,7 +1,5 @@
-package com.margic.adafruitpwm.mock;
+package com.margic.adafruitpwm;
 
-import com.margic.adafruitpwm.ByteUtils;
-import com.margic.adafruitpwm.PCA9685Device;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -4,6 +4,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.margic.adafruitpwm.AdaPCA9685Device;
 import com.margic.adafruitpwm.AdafruitServoDriver;
+import com.margic.adafruitpwm.MockPCA9685Device;
+import com.margic.adafruitpwm.PCA9685Device;
 import com.margic.servo4j.ServoDriver;
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
@@ -30,7 +32,6 @@ public class PihexModule extends AbstractModule {
     protected void configure() {
 
 
-
     }
 
     @Singleton
@@ -47,16 +48,25 @@ public class PihexModule extends AbstractModule {
 
     @Singleton
     @Provides
-    public ServoDriver providerServoDriver(Configuration config) {
-        I2CDevice device = null;
-        try {
-            I2CBus bus = I2CFactory.getInstance(config.getInt(I2C_BUS_PROP, 1));
-            device = bus.getDevice(config.getInt(I2C_ADDRESS_PROP, 0x40));
-        } catch (IOException ioe) {
-            log.error("Unable to get I2CDevice", ioe);
-            return null;
+    public ServoDriver provideServoDriver(Configuration config) {
+        /*
+            Putting this in here to load mock based on property for convenience
+            will figure out better way later
+         */
+        PCA9685Device pca9685Device = null;
+        if(config.getBoolean("com.margic.pihex.useMock", false)){
+            pca9685Device = new MockPCA9685Device();
+        }else {
+            I2CDevice device = null;
+            try {
+                I2CBus bus = I2CFactory.getInstance(config.getInt(I2C_BUS_PROP, 1));
+                device = bus.getDevice(config.getInt(I2C_ADDRESS_PROP, 0x40));
+            } catch (IOException ioe) {
+                log.error("Unable to get I2CDevice", ioe);
+                return null;
+            }
+            pca9685Device = new AdaPCA9685Device(device);
         }
-        AdaPCA9685Device pca9685Device = new AdaPCA9685Device(device);
         AdafruitServoDriver servoDriver = new AdafruitServoDriver(config, pca9685Device);
         return servoDriver;
     }
