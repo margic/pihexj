@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Created by paulcrofts on 3/18/15.
@@ -14,7 +14,7 @@ public class ServoTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServoTest.class);
 
     @Test
-    public void testServoBuilder(){
+    public void testServoBuilder() {
         Servo servo = new Servo.Builder()
                 .center(10)
                 .channel(1)
@@ -42,7 +42,7 @@ public class ServoTest {
     }
 
     @Test
-    public void testGetServoPulse(){
+    public void testGetServoPulse() {
         Servo servo = new Servo.Builder()
                 .name("TestServo")
                 .channel(0)

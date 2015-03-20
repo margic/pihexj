@@ -1,10 +1,12 @@
 package com.margic.adafruitpwm;
 
 import com.margic.servo4j.ServoDriver;
+import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.io.IOException;
 
 /**
  * Created by paulcrofts on 3/15/15.
@@ -13,24 +15,35 @@ import javax.inject.Inject;
  */
 public class AdafruitServoDriver implements ServoDriver {
 
-    private static final Logger log = LoggerFactory.getLogger(AdafruitServoDriver.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AdafruitServoDriver.class);
 
     private static final String DRIVER_NAME = "Adafruit-PCA9685";
 
+    public static final String PWM_FREQUENCY_PROP = "com.margic.pwm.frequency";
     public static final double CLOCK_FREQUENCY = 25 * 1000000;
     public static final double RESOLUTION = 4096;
     public static final int DEFAULT_PWM_FREQUENCY = 50;
 
-    public static final int MODE1_REGISTER = 0x00;
-    public static final int PRE_SCALE_REGISTER = 0xFE;
-
     private PCA9685Device device;
+    private Configuration config;
 
     @Inject
-    public AdafruitServoDriver(PCA9685Device device) {
-        log.debug("Creating new servo driver {} for device {}", getDriverName(), device.getDeviceName());
+    public AdafruitServoDriver(Configuration config, PCA9685Device device) {
+        LOGGER.debug("Creating new servo driver {} for device {}", getDriverName(), device.getDeviceName());
         this.device = device;
-        device.init();
+        this.config = config;
+    }
+
+    /**
+     * mehtod to initialize the pwm board with the necessary initial settings
+     */
+    public void initDevice() {
+        try {
+            setPWMFrequency(config.getInt(PWM_FREQUENCY_PROP, DEFAULT_PWM_FREQUENCY));
+        } catch (IOException ioe) {
+            LOGGER.error("Unable to initialize the device");
+        }
+
     }
 
     @Override
@@ -52,46 +65,62 @@ public class AdafruitServoDriver implements ServoDriver {
      * @param frequency the frequency in hertz
      */
     @Override
-    public void setPWMFrequency(int frequency) {
-        log.debug("Setting pwm frequency to {} hz", frequency);
+    public void setPWMFrequency(int frequency) throws IOException {
+        LOGGER.debug("Setting pwm frequency to {} hz", frequency);
 
         // Writes to PRE_SCALE register are blocked when SLEEP bit is logic 0 (MODE 1)
-        log.debug("Read MODE 1 Register");
+        LOGGER.debug("Read MODE 1 Register");
         //int origMode1 =
 
+        int prescale = getPreScale(frequency);
 
-//        double prescaleval = 25000000.0;
-//        prescaleval /= 4096.0;
-//        prescaleval /= frequency; // Correct for overshoot in the frequency setting (see issue #11).
-//        prescaleval -= 1.0;
-//        log.debug("Estimated pre-scale {}", prescaleval);
-//        double prescale = Math.floor(prescaleval + 0.5);
-//        log.debug("Final pre-scale {}", prescale);
-//        int oldmode = i2cDevice.read(MODE1);
-//        int newmode = (oldmode & 0x7F) | 0x10;
-//        write(MODE1, (byte) newmode);
-//        write(PRESCALE, (byte) (Math.floor(prescale)));
-//        write(MODE1, (byte) oldmode);
-//        sleep(50);
-//        write(MODE1, (byte) (oldmode | 0x80));
+
+        LOGGER.debug("Reading value of Mode 1 register");
+        int oldMode1 = device.readRegister(PCA9685Device.MODE1);
+        LOGGER.debug("Mode 1 register {}", Integer.toHexString(oldMode1));
+
+        int newMode1 = (oldMode1 & 0x7F) | PCA9685Device.MODE1_SLEEP;
+        LOGGER.debug("Setting sleep bit on Mode 1 register {}", Integer.toHexString(newMode1));
+        device.writeRegister(PCA9685Device.MODE1, (byte)newMode1);
+
+        LOGGER.debug("Writing prescale register with {}", prescale);
+        device.writeRegister(PCA9685Device.PRESCALE, (byte)prescale);
+
+        LOGGER.debug("Writing the old value back to mode1 register to start osc again");
+        device.writeRegister(PCA9685Device.MODE1, (byte)oldMode1);
+        // wait for oscillator to restart
+        sleep(50);
+        device.writeRegister(PCA9685Device.MODE1, (byte)(oldMode1 | PCA9685Device.MODE1_RESTART));
     }
 
-    public byte getPreScale(int frequency) {
-        log.debug("Get prescale value for frequency {}", frequency);
+    public int getPreScale(int frequency) throws IOException{
+        LOGGER.debug("Get prescale value for frequency {}", frequency);
 
         double prescaleval = CLOCK_FREQUENCY;
         prescaleval /= RESOLUTION;
         prescaleval /= frequency;
         prescaleval -= 1.0;
-        log.debug("Estimated pre-scale {}", prescaleval);
-        byte prescale = (byte) Math.floor(prescaleval + 0.5);
-        log.debug("Final pre-scale {}", prescale);
+        LOGGER.debug("Estimated pre-scale {}", prescaleval);
+        prescaleval = Math.floor(prescaleval + 0.5);
 
+        if(prescaleval > 254){
+            throw new IOException("Specified frequency " + frequency + " results in prescale value " + prescaleval + " that exceed limit 254");
+        }
+        int prescale = (int)prescaleval;
+        LOGGER.debug("Final pre-scale {}", prescale);
         return prescale;
     }
 
     @Override
     public void setPulse(int pulseLength) {
 
+    }
+
+    private void sleep(int millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            LOGGER.error("sleep interrupted.", e);
+        }
     }
 }

@@ -1,9 +1,9 @@
 package com.margic.adafruitpwm.mock;
 
+import com.margic.adafruitpwm.ByteUtils;
 import com.margic.adafruitpwm.PCA9685Device;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.misc.HexDumpEncoder;
 
 import java.io.ByteArrayOutputStream;
 
@@ -16,7 +16,7 @@ import java.io.ByteArrayOutputStream;
  * of setting of registers and recording of byte stream sent to the device.
  * Created by paulcrofts on 3/18/15.
  */
-public class MockPCA9685Device implements PCA9685Device{
+public class MockPCA9685Device implements PCA9685Device {
 
     private static Logger LOGGER = LoggerFactory.getLogger(MockPCA9685Device.class);
 
@@ -25,15 +25,11 @@ public class MockPCA9685Device implements PCA9685Device{
     private byte[] registers;
     private ByteArrayOutputStream byteStream;
 
-    private HexDumpEncoder dumpEncoder;
-
-
-    public MockPCA9685Device(){
+    public MockPCA9685Device() {
         // device has 256 registers
         this.registers = new byte[256];
         // create a byte stream store bytes written to device
         this.byteStream = new ByteArrayOutputStream(1024);
-        dumpEncoder = new HexDumpEncoder();
     }
 
     @Override
@@ -41,10 +37,6 @@ public class MockPCA9685Device implements PCA9685Device{
         return NAME;
     }
 
-    @Override
-    public void init() {
-
-    }
 
     @Override
     public void writeRegister(int address, byte value) {
@@ -55,27 +47,31 @@ public class MockPCA9685Device implements PCA9685Device{
     @Override
     public void writeRegisters(int startAddress, byte[] values) {
         int address = startAddress;
-        for(byte value: values){
+        for (byte value : values) {
             writeRegister(address, value);
             address++;
         }
     }
 
     @Override
-    public byte readRegister(int address) {
-        return registers[address];
+    public int readRegister(int address) {
+        return (int)registers[address] & 0xFF;
     }
 
     @Override
     public int readRegisters(int startAddress, byte[] buffer, int offset, int size) {
-        return 0;
+        int count;
+        for (count = 0; count < size; count++) {
+            buffer[offset + count] = registers[startAddress + count];
+        }
+        return count;
     }
 
-    public void dumpRegisters(){
-        LOGGER.info("Registers:" + System.getProperty("line.separator") + dumpEncoder.encode(registers));
+    public void dumpRegisters() {
+        LOGGER.info("Registers:" + System.getProperty("line.separator") + ByteUtils.dumpHex(registers));
     }
 
-    public void dumpByteStream(){
-        LOGGER.info("ByteStream:" + System.getProperty("line.separator") + dumpEncoder.encode(byteStream.toByteArray()));
+    public void dumpByteStream() {
+        LOGGER.info("ByteStream:" + System.getProperty("line.separator") + ByteUtils.dumpHex(byteStream.toByteArray()));
     }
 }

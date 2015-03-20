@@ -25,7 +25,8 @@ public class Servo {
     private int angle;
     private int center;
 
-    private Servo(){}
+    private Servo() {
+    }
 
     public String getName() {
         return name;
@@ -52,13 +53,13 @@ public class Servo {
     }
 
     public int getRange() {
-        if(range == 0){
+        if (range == 0) {
             setRange(DEFAULT_RANGE);
         }
         return range;
     }
 
-    public void setRange(int range){
+    public void setRange(int range) {
         this.range = range;
     }
 
@@ -88,13 +89,13 @@ public class Servo {
 
         double mid = (getMinPulse() + getMaxPulse()) / 2;
 
-        int pulse = (int)Math.round(mid + offset);
+        int pulse = (int) Math.round(mid + offset);
 
-        if(pulse < getMinPulse()){
+        if (pulse < getMinPulse()) {
             LOGGER.debug("specified angle exceeds minimum, returning minimum instead");
             pulse = getMinPulse();
         }
-        if(pulse > getMaxPulse()){
+        if (pulse > getMaxPulse()) {
             LOGGER.debug("specified angle exceeds maximum, returning maximum instead");
             pulse = getMaxPulse();
         }
@@ -102,31 +103,36 @@ public class Servo {
         return pulse;
     }
 
-    private double getMicrosPerDeg(){
-        double perDeg = (double)(getMaxPulse() - getMinPulse()) / (double)getRange();
+    private double getMicrosPerDeg() {
+        double perDeg = (double) (getMaxPulse() - getMinPulse()) / (double) getRange();
         LOGGER.debug("µS/deg: {}", perDeg);
         return perDeg;
     }
 
-    public static class Builder{
+    public static class Builder {
         private Servo newServo = new Servo();
-        public Builder channel(int channel){
+
+        public Builder channel(int channel) {
             newServo.channel = channel;
             return this;
         }
-        public Builder name(String name){
+
+        public Builder name(String name) {
             newServo.name = name;
             return this;
         }
-        public Builder center(int center){
+
+        public Builder center(int center) {
             newServo.center = center;
             return this;
         }
-        public Builder angle(int angle){
+
+        public Builder angle(int angle) {
             newServo.angle = angle;
             return this;
         }
-        public Servo build(){
+
+        public Servo build() {
             return newServo;
         }
     }

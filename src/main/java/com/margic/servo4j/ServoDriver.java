@@ -1,6 +1,6 @@
 package com.margic.servo4j;
 
-import com.margic.pihex.Servo;
+import java.io.IOException;
 
 /**
  * Created by paulcrofts on 3/15/15.
@@ -15,14 +15,16 @@ public interface ServoDriver {
     /**
      * set the pwm interval typically every 20ms is typical
      * for a servo this corresponds to 50hz
+     *
      * @param frequency the frequency in hertz
      */
-    public void setPWMFrequency(int frequency);
+    public void setPWMFrequency(int frequency) throws IOException;
 
     /**
      * sets the pulse length for a servo
+     *
      * @param pulseLength
      */
-    public void setPulse(int pulseLength);
+    public void setPulse(int pulseLength) throws IOException;
 
 }

@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 public class PiHex {
     private static final Logger log = LoggerFactory.getLogger(PiHex.class);
 
-    public static void main(String... args){
+    public static void main(String... args) {
         log.info("Starting PiHex application");
         Injector injector = Guice.createInjector(new PihexModule());
 

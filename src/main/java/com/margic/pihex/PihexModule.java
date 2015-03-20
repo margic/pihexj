@@ -35,11 +35,11 @@ public class PihexModule extends AbstractModule {
 
     @Singleton
     @Provides
-    public Configuration provideConfiguration(){
-        try{
+    public Configuration provideConfiguration() {
+        try {
             Configuration config = new PropertiesConfiguration("com.margic.pihex.properties");
             return config;
-        }catch (ConfigurationException ce){
+        } catch (ConfigurationException ce) {
             log.error("Unable to get configuration ", ce);
         }
         return null;
@@ -47,17 +47,17 @@ public class PihexModule extends AbstractModule {
 
     @Singleton
     @Provides
-    public ServoDriver providerServoDriver(Configuration config){
+    public ServoDriver providerServoDriver(Configuration config) {
         I2CDevice device = null;
         try {
             I2CBus bus = I2CFactory.getInstance(config.getInt(I2C_BUS_PROP, 1));
             device = bus.getDevice(config.getInt(I2C_ADDRESS_PROP, 0x40));
-        }catch (IOException ioe){
+        } catch (IOException ioe) {
             log.error("Unable to get I2CDevice", ioe);
             return null;
         }
         AdaPCA9685Device pca9685Device = new AdaPCA9685Device(device);
-        AdafruitServoDriver servoDriver = new AdafruitServoDriver(pca9685Device);
+        AdafruitServoDriver servoDriver = new AdafruitServoDriver(config, pca9685Device);
         return servoDriver;
     }
 }
