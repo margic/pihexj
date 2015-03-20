@@ -7,6 +7,9 @@ import java.io.IOException;
  */
 public interface ServoDriver {
 
+    public static final String PWM_FREQUENCY_PROP = "com.margic.pwm.frequency";
+    public static final int DEFAULT_PWM_FREQUENCY = 50;
+
     /**
      * @return String name of servo driver implementation
      */

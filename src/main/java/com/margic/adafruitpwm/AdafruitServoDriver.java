@@ -19,10 +19,8 @@ public class AdafruitServoDriver implements ServoDriver {
 
     private static final String DRIVER_NAME = "Adafruit-PCA9685";
 
-    public static final String PWM_FREQUENCY_PROP = "com.margic.pwm.frequency";
     public static final double CLOCK_FREQUENCY = 25 * 1000000;
     public static final double RESOLUTION = 4096;
-    public static final int DEFAULT_PWM_FREQUENCY = 50;
 
     private PCA9685Device device;
     private Configuration config;
@@ -32,18 +30,6 @@ public class AdafruitServoDriver implements ServoDriver {
         LOGGER.debug("Creating new servo driver {} for device {}", getDriverName(), device.getDeviceName());
         this.device = device;
         this.config = config;
-    }
-
-    /**
-     * mehtod to initialize the pwm board with the necessary initial settings
-     */
-    public void initDevice() {
-        try {
-            setPWMFrequency(config.getInt(PWM_FREQUENCY_PROP, DEFAULT_PWM_FREQUENCY));
-        } catch (IOException ioe) {
-            LOGGER.error("Unable to initialize the device");
-        }
-
     }
 
     @Override

@@ -61,17 +61,17 @@ public class AdafruitServoDriverTest {
         mockDevice.dumpByteStream();
     }
 
-    @Test
-    public void testInitDevice() {
-        driver.initDevice();
-        mockDevice.dumpRegisters();
-        assertEquals(121, mockDevice.readRegister(PCA9685Device.PRESCALE));
-        // test that the frequency can be set by configuration
-        configuration.setProperty(AdafruitServoDriver.PWM_FREQUENCY_PROP, "100");
-        driver.initDevice();
-        assertEquals(60, mockDevice.readRegister(PCA9685Device.PRESCALE));
-        mockDevice.dumpRegisters();
-        mockDevice.dumpByteStream();
-    }
+//    @Test
+//    public void testInitDevice() {
+//        driver.initDevice();
+//        mockDevice.dumpRegisters();
+//        assertEquals(121, mockDevice.readRegister(PCA9685Device.PRESCALE));
+//        // test that the frequency can be set by configuration
+//        configuration.setProperty(AdafruitServoDriver.PWM_FREQUENCY_PROP, "100");
+//        driver.initDevice();
+//        assertEquals(60, mockDevice.readRegister(PCA9685Device.PRESCALE));
+//        mockDevice.dumpRegisters();
+//        mockDevice.dumpByteStream();
+//    }
 
 }
