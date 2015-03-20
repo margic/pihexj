@@ -43,25 +43,34 @@ public class AdafruitServoDriverTest {
 
         prescale = driver.getPreScale(30);
         assertEquals(202, prescale);
-
     }
 
     @Test
     public void testSetPWMFrequency() throws IOException{
         driver.setPWMFrequency(50);
-        assertEquals(121, mockDevice.readRegister(PCA9685Device.PRESCALE));
-        driver.setPWMFrequency(200);
-        assertEquals(30, mockDevice.readRegister(PCA9685Device.PRESCALE));
-        driver.setPWMFrequency(30);
-        assertEquals(202, mockDevice.readRegister(PCA9685Device.PRESCALE));
         mockDevice.dumpRegisters();
+        assertEquals(121, mockDevice.readRegister(PCA9685Device.PRESCALE));
+
+        driver.setPWMFrequency(200);
+        mockDevice.dumpRegisters();
+        assertEquals(30, mockDevice.readRegister(PCA9685Device.PRESCALE));
+
+        driver.setPWMFrequency(30);
+        mockDevice.dumpRegisters();
+        assertEquals(202, mockDevice.readRegister(PCA9685Device.PRESCALE));
+
         mockDevice.dumpByteStream();
     }
 
     @Test
     public void testInitDevice() {
         driver.initDevice();
-
+        mockDevice.dumpRegisters();
+        assertEquals(121, mockDevice.readRegister(PCA9685Device.PRESCALE));
+        // test that the frequency can be set by configuration
+        configuration.setProperty(AdafruitServoDriver.PWM_FREQUENCY_PROP, "100");
+        driver.initDevice();
+        assertEquals(60, mockDevice.readRegister(PCA9685Device.PRESCALE));
         mockDevice.dumpRegisters();
         mockDevice.dumpByteStream();
     }

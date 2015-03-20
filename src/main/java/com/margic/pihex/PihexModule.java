@@ -28,7 +28,7 @@ public class PihexModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(ServoDriver.class).to(AdafruitServoDriver.class);
+
 
 
     }

@@ -15,7 +15,6 @@ public class PiHex {
         log.info("Starting PiHex application");
         Injector injector = Guice.createInjector(new PihexModule());
 
-        Servo servo = injector.getInstance(Servo.class);
 
     }
 }
