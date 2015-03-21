@@ -1,6 +1,6 @@
 package com.margic.adafruitpwm;
 
-import com.margic.servo4j.ServoDriver;
+import com.margic.pihex.api.ServoDriver;
 import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,6 +98,8 @@ public class AdafruitServoDriver implements ServoDriver {
         LOGGER.debug("Setting restart bit: {}", Integer.toHexString(newMode1));
         device.writeRegister(PCA9685Device.MODE1, (byte)newMode1);
     }
+
+
 
     public int getPreScale(int frequency) throws IOException{
         LOGGER.debug("Get prescale value for frequency {}", frequency);

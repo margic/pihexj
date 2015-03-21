@@ -1,4 +1,4 @@
-package com.margic.servo4j;
+package com.margic.pihex.api;
 
 import java.io.IOException;
 

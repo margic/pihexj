@@ -2,7 +2,7 @@ package com.margic.pihex;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.margic.servo4j.ServoDriver;
+import com.margic.pihex.api.ServoDriver;
 import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

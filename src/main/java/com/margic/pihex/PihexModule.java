@@ -6,7 +6,7 @@ import com.margic.adafruitpwm.AdaPCA9685Device;
 import com.margic.adafruitpwm.AdafruitServoDriver;
 import com.margic.adafruitpwm.MockPCA9685Device;
 import com.margic.adafruitpwm.PCA9685Device;
-import com.margic.servo4j.ServoDriver;
+import com.margic.pihex.api.ServoDriver;
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
 import com.pi4j.io.i2c.I2CFactory;
