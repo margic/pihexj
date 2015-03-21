@@ -38,6 +38,28 @@ public class AdafruitServoDriver implements ServoDriver {
     }
 
     /**
+     * Init the device with the default settings in case existing settings are still in memory
+     * @throws IOException
+     */
+    @Override
+    public void init() throws IOException{
+        LOGGER.info("Initializing the device to preferred start up state"); // essentially the power on default
+
+        LOGGER.debug("Setting all registers off using ALL registers");
+        device.writeRegister(PCA9685Device.ALL_LED_ON_L, (byte) 0x00);
+        device.writeRegister(PCA9685Device.ALL_LED_ON_H, (byte) 0x00);
+        device.writeRegister(PCA9685Device.ALL_LED_OFF_L, (byte) 0x00);
+        device.writeRegister(PCA9685Device.ALL_LED_OFF_H, (byte) 0x00);
+
+        LOGGER.debug("Set mode 2 with only OUTDRV bit high: {}", PCA9685Device.OUTDRV);
+        device.writeRegister(PCA9685Device.MODE2, (byte)PCA9685Device.OUTDRV);
+        LOGGER.debug("Set mode 1 with only ALLCALL bit high: {}", PCA9685Device.ALLCALL); // this sets oscillator on
+        device.writeRegister(PCA9685Device.MODE1, (byte)PCA9685Device.ALLCALL);
+        // with for oscillator to settle takes 500 micro seconds, 50 ms is way more than needed
+        sleep(50);
+    }
+
+    /**
      * The hardware forces a minimum value that can be loaded into the PRE_SCALE register
      * at ‘3’. The PRE_SCALE register defines the frequency at which the outputs modulate. The
      * prescale value is determined with the formula shown in Equation 1:
@@ -52,42 +74,41 @@ public class AdafruitServoDriver implements ServoDriver {
      */
     @Override
     public void setPWMFrequency(int frequency) throws IOException {
-        LOGGER.debug("Setting pwm frequency to {} hz", frequency);
-
-        // Writes to PRE_SCALE register are blocked when SLEEP bit is logic 0 (MODE 1)
-        LOGGER.debug("Read MODE 1 Register");
-        //int origMode1 =
+        LOGGER.info("Setting pwm frequency to {} hz", frequency);
 
         int prescale = getPreScale(frequency);
 
-
         LOGGER.debug("Reading value of Mode 1 register");
         int oldMode1 = device.readRegister(PCA9685Device.MODE1);
-        LOGGER.debug("Mode 1 register {}", Integer.toHexString(oldMode1));
+        LOGGER.debug("Mode 1 register: {}", Integer.toHexString(oldMode1));
 
         int newMode1 = (oldMode1 & 0x7F) | PCA9685Device.MODE1_SLEEP;
-        LOGGER.debug("Setting sleep bit on Mode 1 register {}", Integer.toHexString(newMode1));
+        LOGGER.debug("Setting sleep bit on Mode 1 register: {}", Integer.toHexString(newMode1));
         device.writeRegister(PCA9685Device.MODE1, (byte)newMode1);
 
-        LOGGER.debug("Writing prescale register with {}", prescale);
+        LOGGER.debug("Writing prescale register with: {}", Integer.toHexString(prescale));
         device.writeRegister(PCA9685Device.PRESCALE, (byte)prescale);
 
-        LOGGER.debug("Writing the old value back to mode1 register to start osc again");
-        device.writeRegister(PCA9685Device.MODE1, (byte)oldMode1);
+        newMode1 = oldMode1 & ~PCA9685Device.MODE1_SLEEP;
+        LOGGER.debug("Writing the old value back to mode1 register with sleep off to start osc again: {}", Integer.toHexString(newMode1));
+        device.writeRegister(PCA9685Device.MODE1, (byte)(newMode1));
         // wait for oscillator to restart
         sleep(50);
-        device.writeRegister(PCA9685Device.MODE1, (byte)(oldMode1 | PCA9685Device.MODE1_RESTART));
+        newMode1 = oldMode1 | PCA9685Device.MODE1_RESTART;
+        LOGGER.debug("Setting restart bit: {}", Integer.toHexString(newMode1));
+        device.writeRegister(PCA9685Device.MODE1, (byte)newMode1);
     }
 
     public int getPreScale(int frequency) throws IOException{
         LOGGER.debug("Get prescale value for frequency {}", frequency);
 
+        double correctedFrequency = frequency * 0.9;  // Correct for overshoot in the frequency setting (see issue #11).
         double prescaleval = CLOCK_FREQUENCY;
         prescaleval /= RESOLUTION;
-        prescaleval /= frequency;
+        prescaleval /= correctedFrequency;
         prescaleval -= 1.0;
         LOGGER.debug("Estimated pre-scale {}", prescaleval);
-        prescaleval = Math.floor(prescaleval + 0.5);
+        prescaleval = Math.round(prescaleval + 0.5);
 
         if(prescaleval > 254){
             throw new IOException("Specified frequency " + frequency + " results in prescale value " + prescaleval + " that exceed limit 254");
@@ -98,8 +119,16 @@ public class AdafruitServoDriver implements ServoDriver {
     }
 
     @Override
-    public void setPulse(int pulseLength) {
-
+    public void setPulse(int channel, int pulseLength) {
+        // hard coding setting channel 0 on to test output
+        try {
+            device.writeRegister(PCA9685Device.LED0_ON_HIGH, (byte) 0x00);
+            device.writeRegister(PCA9685Device.LED0_ON_LOW, (byte) 0x00);
+            device.writeRegister(PCA9685Device.LED0_OFF_HIGH, (byte) 0x00);
+            device.writeRegister(PCA9685Device.LED0_OFF_LOW, (byte)0xCC);
+        }catch(IOException ioe){
+            LOGGER.error("Error setting pulse", ioe);
+        }
     }
 
     private void sleep(int millis) {

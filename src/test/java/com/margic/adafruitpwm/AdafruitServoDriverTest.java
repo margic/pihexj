@@ -38,40 +38,36 @@ public class AdafruitServoDriverTest {
     @Test
     public void testGetPreScale() throws Exception{
         int prescale = driver.getPreScale(200);
-        assertEquals(30, prescale);
+        assertEquals(33, prescale);
 
         prescale = driver.getPreScale(30);
-        assertEquals(202, prescale);
+        assertEquals(226, prescale);
     }
 
     @Test
     public void testSetPWMFrequency() throws IOException{
         driver.setPWMFrequency(50);
         mockDevice.dumpRegisters();
-        assertEquals(121, mockDevice.readRegister(PCA9685Device.PRESCALE));
+        assertEquals(135, mockDevice.readRegister(PCA9685Device.PRESCALE));
 
         driver.setPWMFrequency(200);
         mockDevice.dumpRegisters();
-        assertEquals(30, mockDevice.readRegister(PCA9685Device.PRESCALE));
+        assertEquals(33, mockDevice.readRegister(PCA9685Device.PRESCALE));
 
         driver.setPWMFrequency(30);
         mockDevice.dumpRegisters();
-        assertEquals(202, mockDevice.readRegister(PCA9685Device.PRESCALE));
+        assertEquals(226, mockDevice.readRegister(PCA9685Device.PRESCALE));
 
         mockDevice.dumpByteStream();
     }
 
-//    @Test
-//    public void testInitDevice() {
-//        driver.initDevice();
-//        mockDevice.dumpRegisters();
-//        assertEquals(121, mockDevice.readRegister(PCA9685Device.PRESCALE));
-//        // test that the frequency can be set by configuration
-//        configuration.setProperty(AdafruitServoDriver.PWM_FREQUENCY_PROP, "100");
-//        driver.initDevice();
-//        assertEquals(60, mockDevice.readRegister(PCA9685Device.PRESCALE));
-//        mockDevice.dumpRegisters();
-//        mockDevice.dumpByteStream();
-//    }
+    @Test
+    public void testInit() throws IOException{
+        driver.init();
+        mockDevice.dumpRegisters();
+        mockDevice.dumpByteStream();
+        assertEquals((byte)0x01, mockDevice.readRegister(PCA9685Device.MODE1));
+        assertEquals((byte)0x04, mockDevice.readRegister(PCA9685Device.MODE2));
+    }
 
 }

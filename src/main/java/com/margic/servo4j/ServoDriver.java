@@ -28,6 +28,8 @@ public interface ServoDriver {
      *
      * @param pulseLength
      */
-    public void setPulse(int pulseLength) throws IOException;
+    public void setPulse(int channel, int pulseLength) throws IOException;
+
+    public void init() throws IOException;
 
 }

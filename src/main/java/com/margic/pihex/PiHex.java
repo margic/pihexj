@@ -25,9 +25,21 @@ public class PiHex {
         int pwmFreq = config.getInt(ServoDriver.PWM_FREQUENCY_PROP, ServoDriver.DEFAULT_PWM_FREQUENCY);
 
         try {
+            driver.init();
             driver.setPWMFrequency(pwmFreq);
+            LOGGER.info("setting test servo on");
+            driver.setPulse(0, 0);
+
         }catch (IOException ioe){
             LOGGER.error("error", ioe);
         }
+
+//        while(true){
+//            try {
+//                Thread.sleep(1000);
+//            }catch(Exception e){
+//                LOGGER.info("INTERRUPTED");
+//            }
+//        }
     }
 }

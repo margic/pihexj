@@ -26,9 +26,14 @@ public class MockPCA9685Device implements PCA9685Device {
     public MockPCA9685Device() {
         // device has 256 registers
         this.registers = new byte[256];
+
         // create a byte stream store bytes written to device
         this.byteStream = new ByteArrayOutputStream(1024);
-    }
+
+        //this.registers[MODE1] = (byte)0x11; // set the default value for mode1
+        //this.registers[MODE2] = (byte)0x04;
+        dumpRegisters();
+     }
 
     @Override
     public String getDeviceName() {
@@ -38,8 +43,24 @@ public class MockPCA9685Device implements PCA9685Device {
 
     @Override
     public void writeRegister(int address, byte value) {
-        registers[address] = value;
+        if(address >= ALL_LED_ON_L && address <= ALL_LED_OFF_H){
+            LOGGER.debug("Set all write");
+
+            for(int i = (address - 244); i < 70; i+=4){
+                registers[i] = value;
+            }
+        }else {
+            registers[address] = value;
+        }
+        byteStream.write(address);
         byteStream.write(value);
+
+
+
+    }
+
+    private void writeAll(int address, byte value){
+
     }
 
     @Override
