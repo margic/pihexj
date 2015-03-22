@@ -9,13 +9,13 @@ import static org.junit.Assert.assertEquals;
 /**
  * Created by paulcrofts on 3/18/15.
  */
-public class ServoTest {
+public class ServoImplTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServoTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServoImplTest.class);
 
     @Test
     public void testServoBuilder() {
-        Servo servo = new Servo.Builder()
+        ServoImpl servo = new ServoImpl.Builder()
                 .center(10)
                 .channel(1)
                 .name("Test Name")
@@ -43,7 +43,7 @@ public class ServoTest {
 
     @Test
     public void testGetServoPulse() {
-        Servo servo = new Servo.Builder()
+        ServoImpl servo = new ServoImpl.Builder()
                 .name("TestServo")
                 .channel(0)
                 .center(0)

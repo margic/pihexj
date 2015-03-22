@@ -8,8 +8,8 @@ import org.slf4j.LoggerFactory;
  * The servo class represents a servo on the robot and maps name of servo to servo channel
  * The class contains calibration limits for the servo and provider angle to pulse calculation
  */
-public class Servo {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Servo.class);
+public class ServoImpl {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServoImpl.class);
 
     private static final int MIN_PULSE = 1000; // micro seconds
     private static final int MAX_PULSE = 2000; // micro seconds
@@ -25,7 +25,7 @@ public class Servo {
     private int angle;
     private int center;
 
-    private Servo() {
+    private ServoImpl() {
     }
 
     public String getName() {
@@ -110,7 +110,7 @@ public class Servo {
     }
 
     public static class Builder {
-        private Servo newServo = new Servo();
+        private ServoImpl newServo = new ServoImpl();
 
         public Builder channel(int channel) {
             newServo.channel = channel;
@@ -132,7 +132,7 @@ public class Servo {
             return this;
         }
 
-        public Servo build() {
+        public ServoImpl build() {
             return newServo;
         }
     }
