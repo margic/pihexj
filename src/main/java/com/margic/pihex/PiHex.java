@@ -26,9 +26,9 @@ public class PiHex {
 
         try {
             driver.init();
-            driver.setPWMFrequency(pwmFreq);
+            driver.setPulseFrequency(pwmFreq);
             LOGGER.info("setting test servo on");
-            driver.setPulse(0, 0);
+            driver.setPulseLength(0, 0);
 
         }catch (IOException ioe){
             LOGGER.error("error", ioe);

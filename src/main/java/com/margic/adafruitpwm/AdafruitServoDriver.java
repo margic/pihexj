@@ -73,7 +73,7 @@ public class AdafruitServoDriver implements ServoDriver {
      * @param frequency the frequency in hertz
      */
     @Override
-    public void setPWMFrequency(int frequency) throws IOException {
+    public void setPulseFrequency(int frequency) throws IOException {
         LOGGER.info("Setting pwm frequency to {} hz", frequency);
 
         int prescale = getPreScale(frequency);
@@ -121,7 +121,7 @@ public class AdafruitServoDriver implements ServoDriver {
     }
 
     @Override
-    public void setPulse(int channel, int pulseLength) {
+    public void setPulseLength(int channel, int pulseLength) {
         // hard coding setting channel 0 on to test output
         try {
             device.writeRegister(PCA9685Device.LED0_ON_HIGH, (byte) 0x00);

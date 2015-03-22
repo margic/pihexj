@@ -21,15 +21,26 @@ public interface ServoDriver {
      *
      * @param frequency the frequency in hertz
      */
-    public void setPWMFrequency(int frequency) throws IOException;
+    public void setPulseFrequency(int frequency) throws IOException;
 
     /**
      * sets the pulse length for a servo
+     * assumes a servo is designated to a some sort of channel identifier.
+     * Driver implementer should provid mapping for servo channel id to
+     * implementation
      *
      * @param pulseLength
      */
-    public void setPulse(int channel, int pulseLength) throws IOException;
+    public void setPulseLength(int channel, int pulseLength) throws IOException;
 
+
+
+    /**
+     * Hook to initialize the servo driver
+     * @throws IOException
+     */
     public void init() throws IOException;
+
+
 
 }

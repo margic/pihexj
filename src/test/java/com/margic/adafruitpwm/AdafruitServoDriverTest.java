@@ -46,15 +46,15 @@ public class AdafruitServoDriverTest {
 
     @Test
     public void testSetPWMFrequency() throws IOException{
-        driver.setPWMFrequency(50);
+        driver.setPulseFrequency(50);
         mockDevice.dumpRegisters();
         assertEquals(135, mockDevice.readRegister(PCA9685Device.PRESCALE));
 
-        driver.setPWMFrequency(200);
+        driver.setPulseFrequency(200);
         mockDevice.dumpRegisters();
         assertEquals(33, mockDevice.readRegister(PCA9685Device.PRESCALE));
 
-        driver.setPWMFrequency(30);
+        driver.setPulseFrequency(30);
         mockDevice.dumpRegisters();
         assertEquals(226, mockDevice.readRegister(PCA9685Device.PRESCALE));
 
