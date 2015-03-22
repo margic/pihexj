@@ -1,4 +1,4 @@
-package com.margic.adafruitpwm;
+package com.margic.pihex.support;
 
 import org.apache.commons.io.HexDump;
 

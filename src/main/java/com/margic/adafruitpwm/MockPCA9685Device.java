@@ -1,5 +1,6 @@
 package com.margic.adafruitpwm;
 
+import com.margic.pihex.support.ByteUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
