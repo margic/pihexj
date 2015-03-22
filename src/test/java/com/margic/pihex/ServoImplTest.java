@@ -1,5 +1,6 @@
 package com.margic.pihex;
 
+import com.margic.pihex.api.Servo;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +16,7 @@ public class ServoImplTest {
 
     @Test
     public void testServoBuilder() {
-        ServoImpl servo = new ServoImpl.Builder()
+        Servo servo = new ServoImpl.Builder()
                 .center(10)
                 .channel(1)
                 .name("Test Name")
@@ -43,7 +44,7 @@ public class ServoImplTest {
 
     @Test
     public void testGetServoPulse() {
-        ServoImpl servo = new ServoImpl.Builder()
+        Servo servo = new ServoImpl.Builder()
                 .name("TestServo")
                 .channel(0)
                 .center(0)

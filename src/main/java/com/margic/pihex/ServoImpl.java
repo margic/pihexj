@@ -1,5 +1,6 @@
 package com.margic.pihex;
 
+import com.margic.pihex.api.Servo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,7 +9,7 @@ import org.slf4j.LoggerFactory;
  * The servo class represents a servo on the robot and maps name of servo to servo channel
  * The class contains calibration limits for the servo and provider angle to pulse calculation
  */
-public class ServoImpl {
+public class ServoImpl implements com.margic.pihex.api.Servo {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServoImpl.class);
 
     private static final int MIN_PULSE = 1000; // micro seconds
@@ -28,30 +29,37 @@ public class ServoImpl {
     private ServoImpl() {
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public int getChannel() {
         return channel;
     }
 
+    @Override
     public void setChannel(int channel) {
         this.channel = channel;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }
 
+    @Override
     public int getMaxPulse() {
         return maxPulse;
     }
 
+    @Override
     public int getMinPulse() {
         return minPulse;
     }
 
+    @Override
     public int getRange() {
         if (range == 0) {
             setRange(DEFAULT_RANGE);
@@ -59,31 +67,38 @@ public class ServoImpl {
         return range;
     }
 
+    @Override
     public void setRange(int range) {
         this.range = range;
     }
 
+    @Override
     public int getAngle() {
         return angle;
     }
 
+    @Override
     public void setAngle(int angle) {
         this.angle = angle;
     }
 
+    @Override
     public int getCenter() {
         return center;
     }
 
+    @Override
     public void setCenter(int center) {
         this.center = center;
     }
 
+    @Override
     public int getPulseLength(int angle) {
         this.angle = angle;
         return getPulseLength();
     }
 
+    @Override
     public int getPulseLength() {
         double offset = getMicrosPerDeg() * getAngle();
 
@@ -132,7 +147,7 @@ public class ServoImpl {
             return this;
         }
 
-        public ServoImpl build() {
+        public Servo build() {
             return newServo;
         }
     }
