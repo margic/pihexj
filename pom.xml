@@ -25,6 +25,7 @@
         <pi4j.version>0.0.5</pi4j.version>
         <commons-configuration.version>1.10</commons-configuration.version>
         <commons-io.version>2.4</commons-io.version>
+        <commons-lang.version>3.3.2</commons-lang.version>
     </properties>
 
     <dependencies>
@@ -68,6 +69,11 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>${commons-io.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang.version}</version>
         </dependency>
 
         <!-- Testing -->
