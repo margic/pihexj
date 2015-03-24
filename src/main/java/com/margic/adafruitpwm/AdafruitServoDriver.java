@@ -22,12 +22,6 @@ public class AdafruitServoDriver implements ServoDriver {
 
     private static final String DRIVER_NAME = "Adafruit-PCA9685";
 
-    private static final int LED_ON_LOW = 0;
-    private static final int LED_ON_HIGH = 1;
-    private static final int LED_OFF_LOW = 2;
-    private static final int LED_OFF_HIGH = 3;
-
-
     public static final double CLOCK_FREQUENCY = 25 * 1000000;
     public static final double RESOLUTION = 4096;
 
@@ -146,14 +140,15 @@ public class AdafruitServoDriver implements ServoDriver {
 
     @Override
     public void updateServo(Servo servo) throws IOException {
+        LOGGER.debug("Updating servo position: {}", servo.toString());
         // update cache first
         cacheServo(servo);
         int servoChannel = servo.getChannel();
         device.writeRegister(getRegisterForChannel(servoChannel, Register.ON_LOW), (byte) 0x00);
         device.writeRegister(getRegisterForChannel(servoChannel, Register.ON_HIGH), (byte) 0x00);
         byte[] offBytes = ByteUtils.get2ByteInt(servo.getPulseLength(servo.getAngle()));
-        device.writeRegister(getRegisterForChannel(servoChannel, Register.OFF_LOW), offBytes[ByteUtils.HIGH_BYTE]);
-        device.writeRegister(getRegisterForChannel(servoChannel, Register.OFF_HIGH), offBytes[ByteUtils.LOW_BYTE]);
+        device.writeRegister(getRegisterForChannel(servoChannel, Register.OFF_LOW), offBytes[ByteUtils.LOW_BYTE]);
+        device.writeRegister(getRegisterForChannel(servoChannel, Register.OFF_HIGH), offBytes[ByteUtils.HIGH_BYTE]);
     }
 
     private void cacheServo(Servo servo){
@@ -169,10 +164,10 @@ public class AdafruitServoDriver implements ServoDriver {
      * @return
      */
     private int getRegisterForChannel(int channel, Register register){
-        return channel * register.value + PCA9685Device.LED0_ON_HIGH; // LED0_ON_HIGH is first of sequence of registers
+        int registerAddress =  (4 * channel) + (register.value + PCA9685Device.LED0_ON_LOW); // LED0_ON_HIGH is first of sequence of registers
+        LOGGER.trace("Register for channel {}: {}", channel, registerAddress);
+        return registerAddress;
     }
-
-
 
     private void sleep(int millis) {
         try {

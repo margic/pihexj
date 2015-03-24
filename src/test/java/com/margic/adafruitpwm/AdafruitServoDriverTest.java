@@ -1,5 +1,7 @@
 package com.margic.adafruitpwm;
 
+import com.margic.pihex.ServoImpl;
+import com.margic.pihex.api.Servo;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -22,15 +24,8 @@ public class AdafruitServoDriverTest {
     private AdafruitServoDriver driver;
     private MockPCA9685Device mockDevice;
 
-    private Configuration configuration;
-
     @Before
     public void setUpServoDriver() {
-        try {
-            this.configuration = new PropertiesConfiguration("com.margic.pihex.properties");
-        }catch(ConfigurationException ce){
-            LOGGER.error("Failed to get properties.", ce);
-        }
         mockDevice = new MockPCA9685Device();
         this.driver = new AdafruitServoDriver(mockDevice);
     }
@@ -66,8 +61,34 @@ public class AdafruitServoDriverTest {
         driver.init();
         mockDevice.dumpRegisters();
         mockDevice.dumpByteStream();
-        assertEquals((byte)0x01, mockDevice.readRegister(PCA9685Device.MODE1));
-        assertEquals((byte)0x04, mockDevice.readRegister(PCA9685Device.MODE2));
+        assertEquals(0x01, mockDevice.readRegister(PCA9685Device.MODE1));
+        assertEquals(0x04, mockDevice.readRegister(PCA9685Device.MODE2));
     }
 
+    @Test
+    public void testUpdateServo() throws IOException{
+        Servo servo = new ServoImpl.Builder()
+                .angle(0)
+                .channel(0)
+                .build();
+        driver.updateServo(servo);
+        mockDevice.dumpRegisters();
+
+        // assert led0 set correct
+        assertEquals(0x00, mockDevice.readRegister(PCA9685Device.LED0_ON_LOW));
+        assertEquals(0x00, mockDevice.readRegister(PCA9685Device.LED0_ON_HIGH));
+        assertEquals(0xDC, mockDevice.readRegister(PCA9685Device.LED0_OFF_LOW));
+        assertEquals(0x05, mockDevice.readRegister(PCA9685Device.LED0_OFF_HIGH));
+
+        servo.setChannel(2);
+        servo.setAngle(90);
+        driver.updateServo(servo);
+
+        // assert led2 set correct
+        assertEquals(0x00, mockDevice.readRegister(PCA9685Device.LED2_ON_LOW));
+        assertEquals(0x00, mockDevice.readRegister(PCA9685Device.LED2_ON_HIGH));
+        assertEquals(0xD0, mockDevice.readRegister(PCA9685Device.LED2_OFF_LOW));
+        assertEquals(0x07, mockDevice.readRegister(PCA9685Device.LED2_OFF_HIGH));
+
+    }
 }

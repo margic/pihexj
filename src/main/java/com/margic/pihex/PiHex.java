@@ -31,7 +31,7 @@ public class PiHex {
             LOGGER.info("setting test servo on");
             Servo servo = new ServoImpl.Builder()
                     .center(0)
-                    .channel(0)
+                    .channel(1)
                     .name("test servo")
                     .angle(0)
                     .range(180)
@@ -42,12 +42,5 @@ public class PiHex {
             LOGGER.error("error", ioe);
         }
 
-//        while(true){
-//            try {
-//                Thread.sleep(1000);
-//            }catch(Exception e){
-//                LOGGER.info("INTERRUPTED");
-//            }
-//        }
     }
 }
