@@ -2,6 +2,7 @@ package com.margic.pihex;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.margic.pihex.api.Servo;
 import com.margic.pihex.api.ServoDriver;
 import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
@@ -28,7 +29,14 @@ public class PiHex {
             driver.init();
             driver.setPulseFrequency(pwmFreq);
             LOGGER.info("setting test servo on");
-            driver.setPulseLength(0, 0);
+            Servo servo = new ServoImpl.Builder()
+                    .center(0)
+                    .channel(0)
+                    .name("test servo")
+                    .angle(0)
+                    .range(180)
+                    .build();
+            driver.updateServo(servo);
 
         }catch (IOException ioe){
             LOGGER.error("error", ioe);

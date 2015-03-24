@@ -32,7 +32,7 @@ public class AdafruitServoDriverTest {
             LOGGER.error("Failed to get properties.", ce);
         }
         mockDevice = new MockPCA9685Device();
-        this.driver = new AdafruitServoDriver(configuration, mockDevice);
+        this.driver = new AdafruitServoDriver(mockDevice);
     }
 
     @Test

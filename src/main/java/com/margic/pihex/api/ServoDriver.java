@@ -1,6 +1,7 @@
 package com.margic.pihex.api;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Created by paulcrofts on 3/15/15.
@@ -24,17 +25,22 @@ public interface ServoDriver {
     public void setPulseFrequency(int frequency) throws IOException;
 
     /**
-     * sets the pulse length for a servo
+     * sets the pulse length for a single servo
      * assumes a servo is designated to a some sort of channel identifier.
      * Driver implementer should provid mapping for servo channel id to
      * implementation
      *
-     * @param pulseLength
+     * @param servo an implementation of the servo interface
      */
-    public void setPulseLength(int channel, int pulseLength) throws IOException;
+    public void updateServo(Servo servo) throws IOException;
 
 
-
+    /**
+     * updates a list of servos in a single operation
+     * @param servos
+     * @throws IOException
+     */
+    public void updateServos(List<Servo> servos) throws IOException;
 
 
     /**

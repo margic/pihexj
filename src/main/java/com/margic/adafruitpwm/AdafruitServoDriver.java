@@ -1,16 +1,19 @@
 package com.margic.adafruitpwm;
 
+import com.margic.pihex.api.Servo;
 import com.margic.pihex.api.ServoDriver;
+import com.margic.pihex.support.ByteUtils;
 import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Created by paulcrofts on 3/15/15.
- * Servo driver implementation for Adafruit-PCA0685 pwm board
+ * Servo driver implementation for Adafruit-PCA9685 pwm board
  * See datasheet http://www.adafruit.com/datasheets/PCA9685.pdf
  */
 public class AdafruitServoDriver implements ServoDriver {
@@ -19,17 +22,30 @@ public class AdafruitServoDriver implements ServoDriver {
 
     private static final String DRIVER_NAME = "Adafruit-PCA9685";
 
+    private static final int LED_ON_LOW = 0;
+    private static final int LED_ON_HIGH = 1;
+    private static final int LED_OFF_LOW = 2;
+    private static final int LED_OFF_HIGH = 3;
+
+
     public static final double CLOCK_FREQUENCY = 25 * 1000000;
     public static final double RESOLUTION = 4096;
 
     private PCA9685Device device;
-    private Configuration config;
+
+    /*
+      * cache is use when writing multiple servos to cache any missing
+      * servos from the supplied list. The PCA9685 allows writing sequential
+      * registers. This avoids a lot of i2c overhead. To take advantage of
+      * sequential writes the cache can cache state of previous writes to registers
+     */
+    private Servo[] servoCache;
 
     @Inject
-    public AdafruitServoDriver(Configuration config, PCA9685Device device) {
+    public AdafruitServoDriver(PCA9685Device device) {
         LOGGER.debug("Creating new servo driver {} for device {}", getDriverName(), device.getDeviceName());
         this.device = device;
-        this.config = config;
+        this.servoCache = new Servo[16]; // will need to revisit when using more than one board
     }
 
     @Override
@@ -121,17 +137,42 @@ public class AdafruitServoDriver implements ServoDriver {
     }
 
     @Override
-    public void setPulseLength(int channel, int pulseLength) {
-        // hard coding setting channel 0 on to test output
-        try {
-            device.writeRegister(PCA9685Device.LED0_ON_HIGH, (byte) 0x00);
-            device.writeRegister(PCA9685Device.LED0_ON_LOW, (byte) 0x00);
-            device.writeRegister(PCA9685Device.LED0_OFF_HIGH, (byte) 0x00);
-            device.writeRegister(PCA9685Device.LED0_OFF_LOW, (byte)0xCC);
-        }catch(IOException ioe){
-            LOGGER.error("Error setting pulse", ioe);
+    public void updateServos(List<Servo> servos) throws IOException {
+        //todo update implementation with version that using sequential writes to PCA9685
+        for(Servo servo: servos){
+            updateServo(servo);
         }
     }
+
+    @Override
+    public void updateServo(Servo servo) throws IOException {
+        // update cache first
+        cacheServo(servo);
+        int servoChannel = servo.getChannel();
+        device.writeRegister(getRegisterForChannel(servoChannel, Register.ON_LOW), (byte) 0x00);
+        device.writeRegister(getRegisterForChannel(servoChannel, Register.ON_HIGH), (byte) 0x00);
+        byte[] offBytes = ByteUtils.get2ByteInt(servo.getPulseLength(servo.getAngle()));
+        device.writeRegister(getRegisterForChannel(servoChannel, Register.OFF_LOW), offBytes[ByteUtils.HIGH_BYTE]);
+        device.writeRegister(getRegisterForChannel(servoChannel, Register.OFF_HIGH), offBytes[ByteUtils.LOW_BYTE]);
+    }
+
+    private void cacheServo(Servo servo){
+        int servoChannel = servo.getChannel();
+        servoCache[servoChannel] = servo;
+    }
+
+    /**
+     * Returns one of the 4 channel0 registers addresses based on servo channel
+     * @param channel
+     * @param register
+
+     * @return
+     */
+    private int getRegisterForChannel(int channel, Register register){
+        return channel * register.value + PCA9685Device.LED0_ON_HIGH; // LED0_ON_HIGH is first of sequence of registers
+    }
+
+
 
     private void sleep(int millis) {
         try {
@@ -139,5 +180,22 @@ public class AdafruitServoDriver implements ServoDriver {
         } catch (InterruptedException e) {
             LOGGER.error("sleep interrupted.", e);
         }
+    }
+
+    private enum Register{
+        ON_LOW(0),
+        ON_HIGH(1),
+        OFF_LOW(2),
+        OFF_HIGH(3);
+
+        private final int value;
+        Register(int value){
+            this.value = value;
+        }
+
+        int value(){
+            return value;
+        }
+
     }
 }

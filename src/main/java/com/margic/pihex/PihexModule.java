@@ -67,7 +67,7 @@ public class PihexModule extends AbstractModule {
             }
             pca9685Device = new AdaPCA9685Device(device);
         }
-        AdafruitServoDriver servoDriver = new AdafruitServoDriver(config, pca9685Device);
+        AdafruitServoDriver servoDriver = new AdafruitServoDriver(pca9685Device);
         return servoDriver;
     }
 }
