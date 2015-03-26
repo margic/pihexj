@@ -21,6 +21,10 @@ public class ByteUtils {
         return value;
     }
 
+    public static String byte2Hex(byte value){
+        return String.format("%02X", value);
+    }
+
     /**
      * utlitiy method that takes an int value and returns
      * the low and high bytes as and array

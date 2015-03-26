@@ -10,6 +10,10 @@ import com.margic.pihex.api.ServoDriver;
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
 import com.pi4j.io.i2c.I2CFactory;
+import org.apache.camel.CamelContext;
+import org.apache.camel.impl.DefaultCamelContext;
+import org.apache.camel.impl.SimpleRegistry;
+import org.apache.camel.spi.Registry;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -19,19 +23,19 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Singleton;
 import java.io.IOException;
 
+
 /**
  * Created by paulcrofts on 3/15/15.
  */
 public class PihexModule extends AbstractModule {
-    private static final Logger log = LoggerFactory.getLogger(PihexModule.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PihexModule.class);
 
     public static final String I2C_BUS_PROP = "com.margic.pihex.i2cbus";
     public static final String I2C_ADDRESS_PROP = "com.margic.pihex.i2caddress";
 
     @Override
     protected void configure() {
-
-
+        bind(Registry.class).to(SimpleRegistry.class).asEagerSingleton();
     }
 
     @Singleton
@@ -41,10 +45,21 @@ public class PihexModule extends AbstractModule {
             Configuration config = new PropertiesConfiguration("com.margic.pihex.properties");
             return config;
         } catch (ConfigurationException ce) {
-            log.error("Unable to get configuration ", ce);
+            LOGGER.error("Unable to get configuration ", ce);
         }
         return null;
     }
+
+    @Singleton
+    @Provides
+    public CamelContext providesCamelContext(Configuration config, Registry registry){
+        LOGGER.info("Creating camel context");
+
+        CamelContext context = new DefaultCamelContext(registry);
+
+        return context;
+    }
+
 
     @Singleton
     @Provides
@@ -62,12 +77,20 @@ public class PihexModule extends AbstractModule {
                 I2CBus bus = I2CFactory.getInstance(config.getInt(I2C_BUS_PROP, 1));
                 device = bus.getDevice(config.getInt(I2C_ADDRESS_PROP, 0x40));
             } catch (IOException ioe) {
-                log.error("Unable to get I2CDevice", ioe);
+                LOGGER.error("Unable to get I2CDevice", ioe);
                 return null;
             }
             pca9685Device = new AdaPCA9685Device(device);
         }
         AdafruitServoDriver servoDriver = new AdafruitServoDriver(pca9685Device);
+
+        try {
+            int pwmFreq = config.getInt(ServoDriver.PWM_FREQUENCY_PROP, ServoDriver.DEFAULT_PWM_FREQUENCY);
+            servoDriver.init();
+            servoDriver.setPulseFrequency(pwmFreq);
+        }catch(IOException ioe){
+            LOGGER.error("Failed to start servo driver", ioe);
+        }
         return servoDriver;
     }
 }

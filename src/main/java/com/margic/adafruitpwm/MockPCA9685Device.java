@@ -44,6 +44,7 @@ public class MockPCA9685Device implements PCA9685Device {
 
     @Override
     public void writeRegister(int address, byte value) {
+        LOGGER.trace("Write register: {} value: {}", address, ByteUtils.byte2Hex(value));
         if(address >= ALL_LED_ON_L && address <= ALL_LED_OFF_H){
             LOGGER.debug("Set all write");
 
@@ -75,7 +76,9 @@ public class MockPCA9685Device implements PCA9685Device {
 
     @Override
     public int readRegister(int address) {
-        return (int)registers[address] & 0xFF;
+        int value = (int)registers[address] & 0xFF;
+        LOGGER.trace("Read register: {} value {}", address, Integer.toHexString(value));
+        return value;
     }
 
     @Override

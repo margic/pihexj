@@ -77,8 +77,8 @@ public class AdafruitServoDriverTest {
         // assert led0 set correct
         assertEquals(0x00, mockDevice.readRegister(PCA9685Device.LED0_ON_LOW));
         assertEquals(0x00, mockDevice.readRegister(PCA9685Device.LED0_ON_HIGH));
-        assertEquals(0xDC, mockDevice.readRegister(PCA9685Device.LED0_OFF_LOW));
-        assertEquals(0x05, mockDevice.readRegister(PCA9685Device.LED0_OFF_HIGH));
+        assertEquals(0x33, mockDevice.readRegister(PCA9685Device.LED0_OFF_LOW));
+        assertEquals(0x01, mockDevice.readRegister(PCA9685Device.LED0_OFF_HIGH));
 
         servo.setChannel(2);
         servo.setAngle(90);
@@ -87,8 +87,8 @@ public class AdafruitServoDriverTest {
         // assert led2 set correct
         assertEquals(0x00, mockDevice.readRegister(PCA9685Device.LED2_ON_LOW));
         assertEquals(0x00, mockDevice.readRegister(PCA9685Device.LED2_ON_HIGH));
-        assertEquals(0xD0, mockDevice.readRegister(PCA9685Device.LED2_OFF_LOW));
-        assertEquals(0x07, mockDevice.readRegister(PCA9685Device.LED2_OFF_HIGH));
+        assertEquals(0x9A, mockDevice.readRegister(PCA9685Device.LED2_OFF_LOW));
+        assertEquals(0x01, mockDevice.readRegister(PCA9685Device.LED2_OFF_HIGH));
 
     }
 }

@@ -105,7 +105,6 @@ public class ServoImpl implements com.margic.pihex.api.Servo {
      */
     @Override
     public int getPulseLength(int argAngle) {
-
         // limit angle
         if(argAngle > getHighLimit()){
             int newAngle = getHighLimit();
@@ -116,15 +115,10 @@ public class ServoImpl implements com.margic.pihex.api.Servo {
             int newAngle = getLowLimit();
             LOGGER.trace("Angle exceeds low limit. Requested: {}, Using: {}", argAngle, newAngle);
             argAngle = newAngle;
-
         }
-
         double offset = getMicrosPerDeg() * (argAngle + getCenter());
-
         double mid = (MIN_PULSE + MAX_PULSE) / 2;
-
         int pulse = (int) Math.round(mid + offset);
-
         if (pulse < MIN_PULSE) {
             LOGGER.trace("specified angle exceeds minimum, returning minimum instead");
             pulse = MIN_PULSE;

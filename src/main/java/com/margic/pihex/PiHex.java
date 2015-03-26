@@ -1,46 +1,54 @@
 package com.margic.pihex;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.margic.pihex.api.Servo;
-import com.margic.pihex.api.ServoDriver;
-import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 /**
  * Created by paulcrofts on 3/15/15.
+ *
+ * Adding just rough support to start from command line
+ * main start up will be via apache commons daemon Jsvc
+ * so this helps just to provide a way to start daemon from
+ * command until I finish that part.
+ * Gives me a way to type exit to shutdown app
+ * nicely
  */
 public class PiHex {
     private static final Logger LOGGER = LoggerFactory.getLogger(PiHex.class);
 
+    private static boolean running;
+
     public static void main(String... args) {
         LOGGER.info("Starting PiHex application");
-        Injector injector = Guice.createInjector(new PihexModule());
 
-        Configuration config = injector.getInstance(Configuration.class);
+        Thread mainThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                running = true;
+                PiHexDaemon daemon = new PiHexDaemon();
+                daemon = new PiHexDaemon();
+                daemon.init(new String[]{""});
+                daemon.start();
+                while (running) {
+                    try {
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+                        String command = reader.readLine();
+                        if(command.equalsIgnoreCase("exit")) running = false;
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ie) {
+                    } catch (IOException ioe) {
+                        LOGGER.error("Error reading input", ioe);
+                    }
+                }
+                daemon.stop();
+                daemon.destroy();
+            }
+        });
 
-        ServoDriver driver = injector.getInstance(ServoDriver.class);
-        int pwmFreq = config.getInt(ServoDriver.PWM_FREQUENCY_PROP, ServoDriver.DEFAULT_PWM_FREQUENCY);
-
-        try {
-            driver.init();
-            driver.setPulseFrequency(pwmFreq);
-            LOGGER.info("setting test servo on");
-            Servo servo = new ServoImpl.Builder()
-                    .center(0)
-                    .channel(1)
-                    .name("test servo")
-                    .angle(0)
-                    .range(180)
-                    .build();
-            driver.updateServo(servo);
-
-        }catch (IOException ioe){
-            LOGGER.error("error", ioe);
-        }
-
+        mainThread.start();
     }
 }

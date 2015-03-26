@@ -16,6 +16,13 @@ public class ByteUtilsTest {
 
 
     @Test
+    public void testByte2Hex(){
+        assertEquals("FF", ByteUtils.byte2Hex((byte)255));
+        assertEquals("00", ByteUtils.byte2Hex((byte)0));
+    }
+
+
+    @Test
     public void testGetInt() {
         assertEquals(0, ByteUtils.getInt((byte) 0x00, (byte) 0x00));
         assertEquals(4095, ByteUtils.getInt((byte) 0xFF, (byte) 0x0F));

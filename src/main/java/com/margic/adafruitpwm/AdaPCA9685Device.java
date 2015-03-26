@@ -1,5 +1,6 @@
 package com.margic.adafruitpwm;
 
+import com.margic.pihex.support.ByteUtils;
 import com.pi4j.io.i2c.I2CDevice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,7 @@ public class AdaPCA9685Device implements PCA9685Device {
 
     @Override
     public void writeRegister(int address, byte value) throws IOException {
+        LOGGER.trace("Write register: {} value: {}", address, ByteUtils.byte2Hex(value));
         i2cDevice.write(address, value);
     }
 
@@ -41,7 +43,9 @@ public class AdaPCA9685Device implements PCA9685Device {
 
     @Override
     public int readRegister(int address) throws IOException {
-        return i2cDevice.read(address);
+        int value = i2cDevice.read(address);
+        LOGGER.trace("Read register: {} value {}", address, Integer.toHexString(value));
+        return value;
     }
 
     @Override

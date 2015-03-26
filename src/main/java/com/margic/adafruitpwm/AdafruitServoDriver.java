@@ -26,7 +26,7 @@ public class AdafruitServoDriver implements ServoDriver {
     public static final double RESOLUTION = 4096;
 
     private PCA9685Device device;
-
+    private int frequency;
     /*
       * cache is use when writing multiple servos to cache any missing
       * servos from the supplied list. The PCA9685 allows writing sequential
@@ -85,7 +85,7 @@ public class AdafruitServoDriver implements ServoDriver {
     @Override
     public void setPulseFrequency(int frequency) throws IOException {
         LOGGER.info("Setting pwm frequency to {} hz", frequency);
-
+        this.frequency = frequency;
         int prescale = getPreScale(frequency);
 
         LOGGER.debug("Reading value of Mode 1 register");
@@ -109,11 +109,17 @@ public class AdafruitServoDriver implements ServoDriver {
         device.writeRegister(PCA9685Device.MODE1, (byte)newMode1);
     }
 
+    public int getPulseFrequency(){
+        if(frequency == 0){
+            return DEFAULT_PWM_FREQUENCY;
+        }
+        return frequency;
+    }
+
 
 
     public int getPreScale(int frequency) throws IOException{
         LOGGER.debug("Get prescale value for frequency {}", frequency);
-
         double correctedFrequency = frequency * 0.9;  // Correct for overshoot in the frequency setting (see issue #11).
         double prescaleval = CLOCK_FREQUENCY;
         prescaleval /= RESOLUTION;
@@ -140,13 +146,19 @@ public class AdafruitServoDriver implements ServoDriver {
 
     @Override
     public void updateServo(Servo servo) throws IOException {
-        LOGGER.debug("Updating servo position: {}", servo.toString());
         // update cache first
         cacheServo(servo);
         int servoChannel = servo.getChannel();
+        int pulseLength = servo.getPulseLength(servo.getAngle());
+
+        // calc num counts for ms
+        long count = Math.round(pulseLength * RESOLUTION / ((double)1 / (double)getPulseFrequency()) / (double)1000000);
+
+        LOGGER.debug("Updating servo position: {}, count: {}", servo.toString(), count);
+
+        byte[] offBytes = ByteUtils.get2ByteInt((int)count);
         device.writeRegister(getRegisterForChannel(servoChannel, Register.ON_LOW), (byte) 0x00);
         device.writeRegister(getRegisterForChannel(servoChannel, Register.ON_HIGH), (byte) 0x00);
-        byte[] offBytes = ByteUtils.get2ByteInt(servo.getPulseLength(servo.getAngle()));
         device.writeRegister(getRegisterForChannel(servoChannel, Register.OFF_LOW), offBytes[ByteUtils.LOW_BYTE]);
         device.writeRegister(getRegisterForChannel(servoChannel, Register.OFF_HIGH), offBytes[ByteUtils.HIGH_BYTE]);
     }
@@ -164,8 +176,7 @@ public class AdafruitServoDriver implements ServoDriver {
      * @return
      */
     private int getRegisterForChannel(int channel, Register register){
-        int registerAddress =  (4 * channel) + (register.value + PCA9685Device.LED0_ON_LOW); // LED0_ON_HIGH is first of sequence of registers
-        LOGGER.trace("Register for channel {}: {}", channel, registerAddress);
+        int registerAddress =  (4 * channel) + (register.value + PCA9685Device.LED0_ON_LOW); // LED0_ON_HIGH is first of sequence of registers;
         return registerAddress;
     }
 

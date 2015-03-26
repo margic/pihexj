@@ -26,6 +26,7 @@
         <commons-configuration.version>1.10</commons-configuration.version>
         <commons-io.version>2.4</commons-io.version>
         <commons-lang.version>3.3.2</commons-lang.version>
+        <camel.version>2.15.0</camel.version>
     </properties>
 
     <dependencies>
@@ -75,12 +76,22 @@
             <artifactId>commons-lang3</artifactId>
             <version>${commons-lang.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-core</artifactId>
+            <version>${camel.version}</version>
+        </dependency>
         <!-- Testing -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-test</artifactId>
+            <version>${camel.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -151,9 +162,6 @@
                     </dependency>
                 </dependencies>
             </plugin>
-
         </plugins>
     </build>
-
-
 </project>
