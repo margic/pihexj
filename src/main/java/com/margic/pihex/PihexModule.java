@@ -1,5 +1,6 @@
 package com.margic.pihex;
 
+import com.google.common.eventbus.EventBus;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.margic.adafruitpwm.AdaPCA9685Device;
@@ -35,7 +36,17 @@ public class PihexModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(Registry.class).to(SimpleRegistry.class).asEagerSingleton();
+    }
+
+    @Singleton
+    @Provides
+    public Registry provideRegistry() {
+        SimpleRegistry registry = new SimpleRegistry();
+        LOGGER.info("Creating guava event bus");
+        EventBus eventBus = new EventBus("com.margic.pihex.EventBus");
+        LOGGER.debug("Putting event bus in registry as name 'eventBus'");
+        registry.put("eventBus", eventBus);
+        return registry;
     }
 
     @Singleton

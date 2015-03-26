@@ -14,8 +14,10 @@ import java.io.InputStreamReader;
  * main start up will be via apache commons daemon Jsvc
  * so this helps just to provide a way to start daemon from
  * command until I finish that part.
- * Gives me a way to type exit to shutdown app
- * nicely
+ * Gives me a way to type exit to shutdown app nicely
+ *
+ * Don't forget runtime prop   -Dusemock=true when running
+ * to run with mock device and avoid native libraries
  */
 public class PiHex {
     private static final Logger LOGGER = LoggerFactory.getLogger(PiHex.class);

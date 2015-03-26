@@ -1,10 +1,13 @@
 package com.margic.pihex;
 
+import com.google.common.eventbus.EventBus;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.margic.pihex.api.Servo;
 import com.margic.pihex.api.ServoDriver;
 import org.apache.camel.CamelContext;
+import org.apache.camel.impl.SimpleRegistry;
+import org.apache.camel.spi.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +32,13 @@ public class PiHexDaemon {
     public void init(String[] args) {
         LOGGER.info("Initializing PiHex Service");
         injector = Guice.createInjector(new PihexModule());
+        // note this below is not how to use an injector. don't type. this is bad
+        SimpleRegistry registry = (SimpleRegistry)injector.getInstance(Registry.class);
+        EventBus eventBus = new EventBus("com.margic.pihex.EventBus");
+        registry.put("eventBus", eventBus);
+
         context = injector.getInstance(CamelContext.class);
+
     }
 
     public void start() {
@@ -42,20 +51,20 @@ public class PiHexDaemon {
             LOGGER.error("Error starting camel context", e);
         }
 
-        try {
-            LOGGER.info("setting test servo on");
-            Servo servo = new ServoImpl.Builder()
-                    .center(0)
-                    .channel(0)
-                    .name("test servo")
-                    .angle(-90)
-                    .range(180)
-                    .build();
-
-            driver.updateServo(servo);
-        } catch (IOException ioe) {
-            LOGGER.error("error", ioe);
-        }
+//        try {
+//            LOGGER.info("setting test servo on");
+//            Servo servo = new ServoImpl.Builder()
+//                    .center(0)
+//                    .channel(0)
+//                    .name("test servo")
+//                    .angle(-90)
+//                    .range(180)
+//                    .build();
+//
+//            driver.updateServo(servo);
+//        } catch (IOException ioe) {
+//            LOGGER.error("error", ioe);
+//        }
     }
 
     public void stop() {
