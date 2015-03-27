@@ -8,10 +8,13 @@ import com.margic.adafruitpwm.AdafruitServoDriver;
 import com.margic.adafruitpwm.MockPCA9685Device;
 import com.margic.adafruitpwm.PCA9685Device;
 import com.margic.pihex.api.ServoDriver;
+import com.margic.pihex.camel.ConfigurationPropertiesParser;
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
 import com.pi4j.io.i2c.I2CFactory;
 import org.apache.camel.CamelContext;
+import org.apache.camel.component.properties.PropertiesComponent;
+import org.apache.camel.component.properties.PropertiesParser;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.camel.impl.SimpleRegistry;
 import org.apache.camel.spi.Registry;
@@ -36,6 +39,7 @@ public class PihexModule extends AbstractModule {
 
     @Override
     protected void configure() {
+        bind(PropertiesParser.class).to(ConfigurationPropertiesParser.class);
     }
 
     @Singleton
@@ -63,11 +67,12 @@ public class PihexModule extends AbstractModule {
 
     @Singleton
     @Provides
-    public CamelContext providesCamelContext(Configuration config, Registry registry){
+    public CamelContext providesCamelContext(Configuration config, Registry registry, ConfigurationPropertiesParser parser){
         LOGGER.info("Creating camel context");
-
         CamelContext context = new DefaultCamelContext(registry);
-
+        PropertiesComponent pc = context.getComponent("properties", PropertiesComponent.class);
+        parser.setPropertiesComponent(pc);
+        pc.setPropertiesParser(parser);
         return context;
     }
 

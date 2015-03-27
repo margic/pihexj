@@ -81,6 +81,11 @@
             <artifactId>camel-core</artifactId>
             <version>${camel.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-guava-eventbus</artifactId>
+            <version>${camel.version}</version>
+        </dependency>
         <!-- Testing -->
         <dependency>
             <groupId>junit</groupId>

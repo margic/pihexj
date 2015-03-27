@@ -5,6 +5,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.margic.pihex.api.Servo;
 import com.margic.pihex.api.ServoDriver;
+import com.margic.pihex.camel.route.EventBusRouteBuilder;
 import org.apache.camel.CamelContext;
 import org.apache.camel.impl.SimpleRegistry;
 import org.apache.camel.spi.Registry;
@@ -46,25 +47,11 @@ public class PiHexDaemon {
         ServoDriver driver = injector.getInstance(ServoDriver.class);
         try {
             context.setAllowUseOriginalMessage(false);
+            addRoutes(context);
             context.start();
         } catch (Exception e) {
             LOGGER.error("Error starting camel context", e);
         }
-
-//        try {
-//            LOGGER.info("setting test servo on");
-//            Servo servo = new ServoImpl.Builder()
-//                    .center(0)
-//                    .channel(0)
-//                    .name("test servo")
-//                    .angle(-90)
-//                    .range(180)
-//                    .build();
-//
-//            driver.updateServo(servo);
-//        } catch (IOException ioe) {
-//            LOGGER.error("error", ioe);
-//        }
     }
 
     public void stop() {
@@ -79,5 +66,9 @@ public class PiHexDaemon {
     public void destroy() {
         LOGGER.info("Destroy PiHex Service");
         context = null;
+    }
+
+    public void addRoutes(CamelContext context) throws Exception{
+        context.addRoutes(new EventBusRouteBuilder());
     }
 }
