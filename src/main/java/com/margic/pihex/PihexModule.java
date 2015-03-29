@@ -3,20 +3,19 @@ package com.margic.pihex;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import com.google.inject.name.Named;
+import com.google.inject.name.Names;
 import com.margic.adafruitpwm.AdaPCA9685Device;
 import com.margic.adafruitpwm.AdafruitServoDriver;
 import com.margic.adafruitpwm.MockPCA9685Device;
 import com.margic.adafruitpwm.PCA9685Device;
 import com.margic.pihex.api.ServoDriver;
-import com.margic.pihex.camel.ConfigurationPropertiesParser;
+import com.margic.pihex.camel.context.GuiceCamelContext;
+import com.margic.pihex.camel.context.GuiceRegistry;
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
 import com.pi4j.io.i2c.I2CFactory;
 import org.apache.camel.CamelContext;
-import org.apache.camel.component.properties.PropertiesComponent;
-import org.apache.camel.component.properties.PropertiesParser;
-import org.apache.camel.impl.DefaultCamelContext;
-import org.apache.camel.impl.SimpleRegistry;
 import org.apache.camel.spi.Registry;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -37,20 +36,16 @@ public class PihexModule extends AbstractModule {
     public static final String I2C_BUS_PROP = "com.margic.pihex.i2cbus";
     public static final String I2C_ADDRESS_PROP = "com.margic.pihex.i2caddress";
 
+    /**
+     * Guice configure method. make sure to bind any beans required for camel before creating the
+     * registry. The registry will use the injector to find beans annotated for use by camel
+     */
     @Override
     protected void configure() {
-        bind(PropertiesParser.class).to(ConfigurationPropertiesParser.class);
-    }
 
-    @Singleton
-    @Provides
-    public Registry provideRegistry() {
-        SimpleRegistry registry = new SimpleRegistry();
-        LOGGER.info("Creating guava event bus");
-        EventBus eventBus = new EventBus("com.margic.pihex.EventBus");
-        LOGGER.debug("Putting event bus in registry as name 'eventBus'");
-        registry.put("eventBus", eventBus);
-        return registry;
+        bind(EventBus.class).annotatedWith(Names.named("eventBus")).toInstance(new EventBus());
+        bind(Registry.class).to(GuiceRegistry.class).asEagerSingleton();
+        bind(CamelContext.class).to(GuiceCamelContext.class).asEagerSingleton();
     }
 
     @Singleton
@@ -67,27 +62,15 @@ public class PihexModule extends AbstractModule {
 
     @Singleton
     @Provides
-    public CamelContext providesCamelContext(Configuration config, Registry registry, ConfigurationPropertiesParser parser){
-        LOGGER.info("Creating camel context");
-        CamelContext context = new DefaultCamelContext(registry);
-        PropertiesComponent pc = context.getComponent("properties", PropertiesComponent.class);
-        parser.setPropertiesComponent(pc);
-        pc.setPropertiesParser(parser);
-        return context;
-    }
-
-
-    @Singleton
-    @Provides
     public ServoDriver provideServoDriver(Configuration config) {
         /*
             Putting this in here to load mock based on property for convenience
             will figure out better way later
          */
         PCA9685Device pca9685Device = null;
-        if(config.getBoolean("com.margic.pihex.useMock", false)){
+        if (config.getBoolean("com.margic.pihex.useMock", false)) {
             pca9685Device = new MockPCA9685Device();
-        }else {
+        } else {
             I2CDevice device = null;
             try {
                 I2CBus bus = I2CFactory.getInstance(config.getInt(I2C_BUS_PROP, 1));
@@ -104,7 +87,7 @@ public class PihexModule extends AbstractModule {
             int pwmFreq = config.getInt(ServoDriver.PWM_FREQUENCY_PROP, ServoDriver.DEFAULT_PWM_FREQUENCY);
             servoDriver.init();
             servoDriver.setPulseFrequency(pwmFreq);
-        }catch(IOException ioe){
+        } catch (IOException ioe) {
             LOGGER.error("Failed to start servo driver", ioe);
         }
         return servoDriver;

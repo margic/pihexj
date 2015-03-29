@@ -1,4 +1,4 @@
-package com.margic.pihex.camel;
+package com.margic.pihex.camel.context;
 
 import org.apache.camel.component.properties.AugmentedPropertyNameAwarePropertiesParser;
 import org.apache.camel.component.properties.PropertiesComponent;

@@ -1,4 +1,4 @@
-package com.margic.pihex.camel;
+package com.margic.pihex.camel.route;
 
 import com.google.common.eventbus.Subscribe;
 import com.margic.pihex.model.ServoSetting;
