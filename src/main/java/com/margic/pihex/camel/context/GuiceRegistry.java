@@ -40,13 +40,21 @@ public class GuiceRegistry extends JndiRegistry {
             log.debug("Binding guice objects to registry");
             Map<Key<?>, Binding<?>> bindings = injector.getBindings();
             for (Key key : bindings.keySet()) {
-                if (key.getAnnotationType() == Named.class || key.getAnnotationType() == BindCamelRegistry.class) {
-                    log.debug("Found binding that should be bound to camel registry.");
+                if (key.getAnnotationType() == Named.class) {
+                    log.debug("Found binding annotated with named. Should be bound to camel registry.");
                     Object object = injector.getInstance(key);
-                    if (key.getAnnotation() instanceof Named) {
-                        Named named = (Named) key.getAnnotation();
-                        String name = named.value();
-                        bind(name, object);
+                    Named named = (Named) key.getAnnotation();
+                    String name = named.value();
+                    bind(name, object);
+                }else {
+                    BindCamelRegistry annotation = (BindCamelRegistry)key.getTypeLiteral().getRawType().getAnnotation(BindCamelRegistry.class);
+                    if(annotation != null) {
+                        log.debug("Found object bound with annotation BindCamelRegistry");
+                        String ref = annotation.ref();
+                        if (ref != null) {
+                            Object object = injector.getInstance(key);
+                            bind(ref, object);
+                        }
                     }
                 }
             }
@@ -74,15 +82,4 @@ public class GuiceRegistry extends JndiRegistry {
         properties.put("java.naming.factory.initial", "org.apache.camel.util.jndi.CamelInitialContextFactory");
         return new InitialContext(properties);
     }
-
-    //    @Override
-//    public Object lookupByName(String name) {
-//        Object answer = super.lookupByName(name);
-//        if(answer == null){
-//            log.debug("Looking up object in injector binding");
-//
-//
-//        }
-//        return answer;
-//    }
 }
