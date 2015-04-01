@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by paulcrofts on 3/30/15.
  */
-public class ConfigurationPropertiesFunctionTest extends PiHexCamelTestSupport {
+public class ConfigurationPropertiesFunctionTest extends CustomCamelContextTestSupport {
 
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception {

@@ -19,6 +19,7 @@ public class CustomCamelContext extends DefaultCamelContext {
     public CustomCamelContext(Registry registry, Configuration config) {
         super(registry);
         log.info("Creating Guice Camel Context");
+        setTracing(config.getBoolean("com.margic.pihex.camel.tracing", false));
         PropertiesComponent pc = getComponent("properties", PropertiesComponent.class);
         pc.addFunction(new ConfigurationPropertiesFunction(config));
     }

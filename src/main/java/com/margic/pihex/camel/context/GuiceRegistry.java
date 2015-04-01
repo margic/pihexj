@@ -9,6 +9,7 @@ import com.google.inject.matcher.Matcher;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Named;
 import org.apache.camel.impl.JndiRegistry;
+import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,20 +28,22 @@ import java.util.Set;
 public class GuiceRegistry extends JndiRegistry {
 
     private static final Logger log = LoggerFactory.getLogger(GuiceRegistry.class);
-    private Injector injector;
 
     @Inject
-    public GuiceRegistry(Injector injector) {
+    public GuiceRegistry(Injector injector, Configuration config) {
         super();
-        this.injector = injector;
-        bindGuiceObjects();
+        bindGuiceObjects(injector, config);
     }
 
     /**
      * method to scan injector bindings to register objects
      * annotated with BindCamelRegistry or names
      */
-    private void bindGuiceObjects() {
+    private void bindGuiceObjects(Injector injector, Configuration config) {
+        // bind the config it will make testing way easier
+        if(config != null){
+            bind("configuration", config);
+        }
         if (injector != null) {
             log.debug("Binding guice objects to registry");
             Map<Key<?>, Binding<?>> bindings = injector.getBindings();
@@ -64,15 +67,6 @@ public class GuiceRegistry extends JndiRegistry {
                 }
             }
         }
-    }
-
-
-    public Injector getInjector() {
-        return injector;
-    }
-
-    public void setInjector(Injector injector) {
-        this.injector = injector;
     }
 
     /**

@@ -9,7 +9,8 @@ public class EventBusRouteBuilder extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        from("guava-eventbus:{{config:com.margic.pihex.camel.eventBusName}}?listenerInterface=com.margic.pihex.camel.route.EventBusEvents").to("seda:queue");
+        from("guava-eventbus:{{config:com.margic.pihex.camel.eventBusName}}?listenerInterface=com.margic.pihex.camel.route.EventBusEvents")
+                .to("{{config:com.margic.pihex.camel.evenBusRouteTo}}");
     }
 }
 

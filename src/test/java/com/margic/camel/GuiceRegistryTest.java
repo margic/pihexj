@@ -34,7 +34,7 @@ public class GuiceRegistryTest {
             }
         });
 
-        GuiceRegistry registry = new GuiceRegistry(injector);
+        GuiceRegistry registry = new GuiceRegistry(injector, null);
         Object object = registry.lookupByName("myBean");
         assertNotNull(object);
         TestClass testClass = registry.lookup("myBean", TestClass.class);
@@ -50,7 +50,7 @@ public class GuiceRegistryTest {
             }
         });
 
-        GuiceRegistry registry = new GuiceRegistry(injector);
+        GuiceRegistry registry = new GuiceRegistry(injector, null);
         String testString = (String)registry.lookup("testName");
         assertEquals("My String Value", testString);
 
