@@ -12,7 +12,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class ServoImplTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServoImplTest.class);
+    private static final Logger log = LoggerFactory.getLogger(ServoImplTest.class);
 
     @Test
     public void testServoBuilder() {
@@ -69,9 +69,9 @@ public class ServoImplTest {
 
     private void assertPulse(Servo testServo, int expectedPulseLength){
 
-        LOGGER.info("Testing pulse for servo: {}", testServo);
+        log.info("Testing pulse for servo: {}", testServo);
         int pulse = testServo.getPulseLength(testServo.getAngle());
-        LOGGER.info("Servo pulse length: {}", pulse);
+        log.info("Servo pulse length: {}", pulse);
         assertEquals(expectedPulseLength, pulse);
     }
 
@@ -80,24 +80,24 @@ public class ServoImplTest {
         Servo servo = getTestServo();
 
         // TESTING CENTER
-        LOGGER.info("Testing CENTER");
+        log.info("Testing CENTER");
         servo.setAngle(0);
         assertPulse(servo, 1500);
 
-        LOGGER.info("Testing CENTER calibrated to +5");
+        log.info("Testing CENTER calibrated to +5");
         servo = getTestServo(); // resets the servo to new object
         servo.setCenter(5);
         servo.setAngle(0);
         assertPulse(servo, 1528);
 
-        LOGGER.info("Testing CENTER a lower range of 120 center");
+        log.info("Testing CENTER a lower range of 120 center");
         servo = getTestServo(); // resets the servo to new object
         servo.setCenter(0);
         servo.setRange(120);
         servo.setAngle(0);
         assertPulse(servo, 1500);
 
-        LOGGER.info("Testing CENTER a lower range of 120 center calibrated to + 5");
+        log.info("Testing CENTER a lower range of 120 center calibrated to + 5");
         servo = getTestServo(); // resets the servo to new object
         servo.setCenter(5);
         servo.setRange(120);
@@ -105,17 +105,17 @@ public class ServoImplTest {
         assertPulse(servo, 1542);
 
         // TESTING MAX
-        LOGGER.info("Testing MAX");
+        log.info("Testing MAX");
         servo = getTestServo();
         servo.setAngle(90);
         assertPulse(servo, 2000);
 
-        LOGGER.info(("Testing MAX beyond range"));
+        log.info(("Testing MAX beyond range"));
         servo = getTestServo();
         servo.setAngle(91);
         assertPulse(servo, 2000);
 
-        LOGGER.info(("Testing MAX beyond limit within range"));
+        log.info(("Testing MAX beyond limit within range"));
         servo = getTestServo();
         servo.setAngle(90);
         servo.setHighLimit(80);
@@ -123,17 +123,17 @@ public class ServoImplTest {
 
 
         // TESTING MIN
-        LOGGER.info("Testing MIN");
+        log.info("Testing MIN");
         servo = getTestServo();
         servo.setAngle(-90);
         assertPulse(servo, 1000);
 
-        LOGGER.info(("Testing MIN beyond range"));
+        log.info(("Testing MIN beyond range"));
         servo = getTestServo();
         servo.setAngle(-91);
         assertPulse(servo, 1000);
 
-        LOGGER.info(("Testing MIN beyond limit within range"));
+        log.info(("Testing MIN beyond limit within range"));
         servo = getTestServo();
         servo.setAngle(-90);
         servo.setLowLimit(-80);

@@ -17,7 +17,7 @@ import java.io.ByteArrayOutputStream;
  */
 public class MockPCA9685Device implements PCA9685Device {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(MockPCA9685Device.class);
+    private static Logger log = LoggerFactory.getLogger(MockPCA9685Device.class);
 
     private static String NAME = "Mock PCA9685 device";
 
@@ -44,9 +44,9 @@ public class MockPCA9685Device implements PCA9685Device {
 
     @Override
     public void writeRegister(int address, byte value) {
-        LOGGER.trace("Write register: {} value: {}", address, ByteUtils.byte2Hex(value));
+        log.trace("Write register: {} value: {}", address, ByteUtils.byte2Hex(value));
         if(address >= ALL_LED_ON_L && address <= ALL_LED_OFF_H){
-            LOGGER.debug("Set all write");
+            log.debug("Set all write");
 
             for(int i = (address - 244); i < 70; i+=4){
                 registers[i] = value;
@@ -77,7 +77,7 @@ public class MockPCA9685Device implements PCA9685Device {
     @Override
     public int readRegister(int address) {
         int value = (int)registers[address] & 0xFF;
-        LOGGER.trace("Read register: {} value {}", address, Integer.toHexString(value));
+        log.trace("Read register: {} value {}", address, Integer.toHexString(value));
         return value;
     }
 
@@ -91,10 +91,10 @@ public class MockPCA9685Device implements PCA9685Device {
     }
 
     public void dumpRegisters() {
-        LOGGER.info("Registers:" + System.getProperty("line.separator") + ByteUtils.dumpHex(registers));
+        log.info("Registers:" + System.getProperty("line.separator") + ByteUtils.dumpHex(registers));
     }
 
     public void dumpByteStream() {
-        LOGGER.info("ByteStream:" + System.getProperty("line.separator") + ByteUtils.dumpHex(byteStream.toByteArray()));
+        log.info("ByteStream:" + System.getProperty("line.separator") + ByteUtils.dumpHex(byteStream.toByteArray()));
     }
 }

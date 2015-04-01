@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class AdafruitServoDriverTest {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(AdafruitServoDriverTest.class);
+    private static Logger log = LoggerFactory.getLogger(AdafruitServoDriverTest.class);
 
     private AdafruitServoDriver driver;
     private MockPCA9685Device mockDevice;

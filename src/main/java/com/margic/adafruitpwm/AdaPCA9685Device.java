@@ -14,7 +14,7 @@ import java.io.IOException;
  */
 public class AdaPCA9685Device implements PCA9685Device {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AdaPCA9685Device.class);
+    private static final Logger log = LoggerFactory.getLogger(AdaPCA9685Device.class);
 
     private static final String DEVICE_NAME = "Adafruit PCA9685 Device";
 
@@ -31,26 +31,26 @@ public class AdaPCA9685Device implements PCA9685Device {
 
     @Override
     public void writeRegister(int address, byte value) throws IOException {
-        LOGGER.trace("Write register: {} value: {}", address, ByteUtils.byte2Hex(value));
+        log.trace("Write register: {} value: {}", address, ByteUtils.byte2Hex(value));
         i2cDevice.write(address, value);
     }
 
     @Override
     public void writeRegisters(int startAddress, byte[] values) throws IOException {
-        LOGGER.error("NOT YET IMPLEMENTED - currently focusing on single servo operations");
+        log.error("NOT YET IMPLEMENTED - currently focusing on single servo operations");
         i2cDevice.write(startAddress, values, 0, values.length);
     }
 
     @Override
     public int readRegister(int address) throws IOException {
         int value = i2cDevice.read(address);
-        LOGGER.trace("Read register: {} value {}", address, Integer.toHexString(value));
+        log.trace("Read register: {} value {}", address, Integer.toHexString(value));
         return value;
     }
 
     @Override
     public int readRegisters(int startAddress, byte[] buffer, int offset, int size) throws IOException {
-        LOGGER.error("NOT YET IMPLEMENTED");
+        log.error("NOT YET IMPLEMENTED");
         return i2cDevice.read(startAddress, buffer, 0, buffer.length);
     }
 }

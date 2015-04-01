@@ -31,7 +31,7 @@ import java.io.IOException;
  * Created by paulcrofts on 3/15/15.
  */
 public class PihexModule extends AbstractModule {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PihexModule.class);
+    private static final Logger log = LoggerFactory.getLogger(PihexModule.class);
 
     public static final String I2C_BUS_PROP = "com.margic.pihex.i2cbus";
     public static final String I2C_ADDRESS_PROP = "com.margic.pihex.i2caddress";
@@ -55,7 +55,7 @@ public class PihexModule extends AbstractModule {
             Configuration config = new PropertiesConfiguration("com.margic.pihex.properties");
             return config;
         } catch (ConfigurationException ce) {
-            LOGGER.error("Unable to get configuration ", ce);
+            log.error("Unable to get configuration ", ce);
         }
         return null;
     }
@@ -76,7 +76,7 @@ public class PihexModule extends AbstractModule {
                 I2CBus bus = I2CFactory.getInstance(config.getInt(I2C_BUS_PROP, 1));
                 device = bus.getDevice(config.getInt(I2C_ADDRESS_PROP, 0x40));
             } catch (IOException ioe) {
-                LOGGER.error("Unable to get I2CDevice", ioe);
+                log.error("Unable to get I2CDevice", ioe);
                 return null;
             }
             pca9685Device = new AdaPCA9685Device(device);
@@ -88,7 +88,7 @@ public class PihexModule extends AbstractModule {
             servoDriver.init();
             servoDriver.setPulseFrequency(pwmFreq);
         } catch (IOException ioe) {
-            LOGGER.error("Failed to start servo driver", ioe);
+            log.error("Failed to start servo driver", ioe);
         }
         return servoDriver;
     }

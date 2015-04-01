@@ -20,12 +20,12 @@ import java.io.InputStreamReader;
  * to run with mock device and avoid native libraries
  */
 public class PiHex {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PiHex.class);
+    private static final Logger log = LoggerFactory.getLogger(PiHex.class);
 
     private static boolean running;
 
     public static void main(String... args) {
-        LOGGER.info("Starting PiHex application");
+        log.info("Starting PiHex application");
 
         Thread mainThread = new Thread(new Runnable() {
             @Override
@@ -43,7 +43,7 @@ public class PiHex {
                         Thread.sleep(1000);
                     } catch (InterruptedException ie) {
                     } catch (IOException ioe) {
-                        LOGGER.error("Error reading input", ioe);
+                        log.error("Error reading input", ioe);
                     }
                 }
                 daemon.stop();

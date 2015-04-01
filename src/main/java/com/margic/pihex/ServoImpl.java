@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  * @See com.margic.pihex.ServoImplTest
  */
 public class ServoImpl implements com.margic.pihex.api.Servo {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServoImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(ServoImpl.class);
 
     private static final int DEFAULT_RANGE = 180;
     private static final int MIN_PULSE = 1000;
@@ -108,26 +108,26 @@ public class ServoImpl implements com.margic.pihex.api.Servo {
         // limit angle
         if(argAngle > getHighLimit()){
             int newAngle = getHighLimit();
-            LOGGER.trace("Angle exceeds high limit. Requested: {}, Using: {}", argAngle, newAngle);
+            log.trace("Angle exceeds high limit. Requested: {}, Using: {}", argAngle, newAngle);
             argAngle = newAngle;
         }
         if(argAngle < getLowLimit()){
             int newAngle = getLowLimit();
-            LOGGER.trace("Angle exceeds low limit. Requested: {}, Using: {}", argAngle, newAngle);
+            log.trace("Angle exceeds low limit. Requested: {}, Using: {}", argAngle, newAngle);
             argAngle = newAngle;
         }
         double offset = getMicrosPerDeg() * (argAngle + getCenter());
         double mid = (MIN_PULSE + MAX_PULSE) / 2;
         int pulse = (int) Math.round(mid + offset);
         if (pulse < MIN_PULSE) {
-            LOGGER.trace("specified angle exceeds minimum, returning minimum instead");
+            log.trace("specified angle exceeds minimum, returning minimum instead");
             pulse = MIN_PULSE;
         }
         if (pulse > MAX_PULSE) {
-            LOGGER.trace("specified angle exceeds maximum, returning maximum instead");
+            log.trace("specified angle exceeds maximum, returning maximum instead");
             pulse = MAX_PULSE;
         }
-        LOGGER.trace("Calculating pulse length for servo angle {}: {}\u00B5S", argAngle, pulse);
+        log.trace("Calculating pulse length for servo angle {}: {}\u00B5S", argAngle, pulse);
         return pulse;
     }
 
@@ -161,7 +161,7 @@ public class ServoImpl implements com.margic.pihex.api.Servo {
 
     private double getMicrosPerDeg() {
         double perDeg = (double) (MAX_PULSE - MIN_PULSE) / (double) getRange();
-        LOGGER.debug("µS/deg: {} for range: {}", perDeg, getRange());
+        log.debug("µS/deg: {} for range: {}", perDeg, getRange());
         return perDeg;
     }
 

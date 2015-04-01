@@ -21,19 +21,19 @@ import org.slf4j.LoggerFactory;
  */
 public class PiHexDaemon {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PiHexDaemon.class);
+    private static final Logger log = LoggerFactory.getLogger(PiHexDaemon.class);
     private Injector injector;
     private CamelContext context;
     private Controller controller;
 
     public void init(String[] args) {
-        LOGGER.info("Initializing PiHex Service");
+        log.info("Initializing PiHex Service");
         injector = Guice.createInjector(new PihexModule());
         context = injector.getInstance(CamelContext.class);
     }
 
     public void start() {
-        LOGGER.info("Startup PiHex Service");
+        log.info("Startup PiHex Service");
         ServoDriver driver = injector.getInstance(ServoDriver.class);
         try {
             context.setAllowUseOriginalMessage(false);
@@ -42,22 +42,22 @@ public class PiHexDaemon {
 
 
         } catch (Exception e) {
-            LOGGER.error("Error starting camel context", e);
+            log.error("Error starting camel context", e);
         }
         controller = injector.getInstance(Controller.class);
     }
 
     public void stop() {
-        LOGGER.info("Shutdown PiHex Service");
+        log.info("Shutdown PiHex Service");
         try {
             context.stop();
         } catch (Exception e) {
-            LOGGER.error("Failed to stop camel context");
+            log.error("Failed to stop camel context");
         }
     }
 
     public void destroy() {
-        LOGGER.info("Destroy PiHex Service");
+        log.info("Destroy PiHex Service");
         context = null;
     }
 

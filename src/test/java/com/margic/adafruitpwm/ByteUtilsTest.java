@@ -12,7 +12,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class ByteUtilsTest {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(ByteUtilsTest.class);
+    private static Logger log = LoggerFactory.getLogger(ByteUtilsTest.class);
 
 
     @Test
@@ -43,7 +43,7 @@ public class ByteUtilsTest {
 
 
     private void assert2ByteInt(byte[] testValue, byte lowExpected, byte highExpected) {
-        LOGGER.info("Bytes for value {}:{}", testValue, ByteUtils.dumpHex(testValue));
+        log.info("Bytes for value {}:{}", testValue, ByteUtils.dumpHex(testValue));
         assertEquals(lowExpected, testValue[ByteUtils.LOW_BYTE]);
         assertEquals(highExpected, testValue[ByteUtils.HIGH_BYTE]);
     }
