@@ -37,7 +37,7 @@ public class AdaPCA9685Device implements PCA9685Device {
 
     @Override
     public void writeRegisters(int startAddress, byte[] values) throws IOException {
-        LOGGER.error("THIS SHOULD HAVE SET THE AUTO INCREMENT BEFORE THIS CALL RESET AFTER");
+        LOGGER.error("NOT YET IMPLEMENTED - currently focusing on single servo operations");
         i2cDevice.write(startAddress, values, 0, values.length);
     }
 
@@ -50,7 +50,7 @@ public class AdaPCA9685Device implements PCA9685Device {
 
     @Override
     public int readRegisters(int startAddress, byte[] buffer, int offset, int size) throws IOException {
-        LOGGER.error("THIS SHOULD HAVE SET THE AUTO INCREMENT BEFORE THIS CALL RESET AFTER");
+        LOGGER.error("NOT YET IMPLEMENTED");
         return i2cDevice.read(startAddress, buffer, 0, buffer.length);
     }
 }

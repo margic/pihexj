@@ -3,14 +3,14 @@ package com.margic.pihex;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.margic.adafruitpwm.AdaPCA9685Device;
 import com.margic.adafruitpwm.AdafruitServoDriver;
 import com.margic.adafruitpwm.MockPCA9685Device;
 import com.margic.adafruitpwm.PCA9685Device;
+import com.margic.pihex.api.Controller;
 import com.margic.pihex.api.ServoDriver;
-import com.margic.pihex.camel.context.GuiceCamelContext;
+import com.margic.pihex.camel.context.CustomCamelContext;
 import com.margic.pihex.camel.context.GuiceRegistry;
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
@@ -42,10 +42,10 @@ public class PihexModule extends AbstractModule {
      */
     @Override
     protected void configure() {
-
         bind(EventBus.class).annotatedWith(Names.named("eventBus")).toInstance(new EventBus());
-        bind(Registry.class).to(GuiceRegistry.class).asEagerSingleton();
-        bind(CamelContext.class).to(GuiceCamelContext.class).asEagerSingleton();
+        bind(Registry.class).to(GuiceRegistry.class).in(Singleton.class);
+        bind(CamelContext.class).to(CustomCamelContext.class).in(Singleton.class);
+        bind(Controller.class).to(PiHexController.class).in(Singleton.class);
     }
 
     @Singleton

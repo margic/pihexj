@@ -2,9 +2,6 @@ package com.margic.adafruitpwm;
 
 import com.margic.pihex.ServoImpl;
 import com.margic.pihex.api.Servo;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;

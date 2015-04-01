@@ -3,7 +3,6 @@ package com.margic.adafruitpwm;
 import com.margic.pihex.api.Servo;
 import com.margic.pihex.api.ServoDriver;
 import com.margic.pihex.support.ByteUtils;
-import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +17,7 @@ import java.util.List;
  */
 public class AdafruitServoDriver implements ServoDriver {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AdafruitServoDriver.class);
+    private static final Logger log = LoggerFactory.getLogger(AdafruitServoDriver.class);
 
     private static final String DRIVER_NAME = "Adafruit-PCA9685";
 
@@ -37,9 +36,9 @@ public class AdafruitServoDriver implements ServoDriver {
 
     @Inject
     public AdafruitServoDriver(PCA9685Device device) {
-        LOGGER.debug("Creating new servo driver {} for device {}", getDriverName(), device.getDeviceName());
+        log.debug("Creating new servo driver {} for device {}", getDriverName(), device.getDeviceName());
         this.device = device;
-        this.servoCache = new Servo[16]; // will need to revisit when using more than one board
+        this.servoCache = new Servo[18]; // will need to revisit when using more than one board
     }
 
     @Override
@@ -53,18 +52,18 @@ public class AdafruitServoDriver implements ServoDriver {
      */
     @Override
     public void init() throws IOException{
-        LOGGER.info("Initializing the device to preferred start up state"); // essentially the power on default
+        log.info("Initializing the device to preferred start up state"); // essentially the power on default
 
-        LOGGER.debug("Setting all registers off using ALL registers");
+        log.debug("Setting all registers off using ALL registers");
         device.writeRegister(PCA9685Device.ALL_LED_ON_L, (byte) 0x00);
         device.writeRegister(PCA9685Device.ALL_LED_ON_H, (byte) 0x00);
         device.writeRegister(PCA9685Device.ALL_LED_OFF_L, (byte) 0x00);
         device.writeRegister(PCA9685Device.ALL_LED_OFF_H, (byte) 0x00);
 
-        LOGGER.debug("Set mode 2 with only OUTDRV bit high: {}", PCA9685Device.OUTDRV);
-        device.writeRegister(PCA9685Device.MODE2, (byte)PCA9685Device.OUTDRV);
-        LOGGER.debug("Set mode 1 with only ALLCALL bit high: {}", PCA9685Device.ALLCALL); // this sets oscillator on
-        device.writeRegister(PCA9685Device.MODE1, (byte)PCA9685Device.ALLCALL);
+        log.debug("Set mode 2 with only OUTDRV bit high: {}", PCA9685Device.OUTDRV);
+        device.writeRegister(PCA9685Device.MODE2, (byte) PCA9685Device.OUTDRV);
+        log.debug("Set mode 1 with only ALLCALL bit high: {}", PCA9685Device.ALLCALL); // this sets oscillator on
+        device.writeRegister(PCA9685Device.MODE1, (byte) PCA9685Device.ALLCALL);
         // with for oscillator to settle takes 500 micro seconds, 50 ms is way more than needed
         sleep(50);
     }
@@ -84,29 +83,29 @@ public class AdafruitServoDriver implements ServoDriver {
      */
     @Override
     public void setPulseFrequency(int frequency) throws IOException {
-        LOGGER.info("Setting pwm frequency to {} hz", frequency);
+        log.info("Setting pwm frequency to {} hz", frequency);
         this.frequency = frequency;
         int prescale = getPreScale(frequency);
 
-        LOGGER.debug("Reading value of Mode 1 register");
+        log.debug("Reading value of Mode 1 register");
         int oldMode1 = device.readRegister(PCA9685Device.MODE1);
-        LOGGER.debug("Mode 1 register: {}", Integer.toHexString(oldMode1));
+        log.debug("Mode 1 register: {}", Integer.toHexString(oldMode1));
 
         int newMode1 = (oldMode1 & 0x7F) | PCA9685Device.MODE1_SLEEP;
-        LOGGER.debug("Setting sleep bit on Mode 1 register: {}", Integer.toHexString(newMode1));
-        device.writeRegister(PCA9685Device.MODE1, (byte)newMode1);
+        log.debug("Setting sleep bit on Mode 1 register: {}", Integer.toHexString(newMode1));
+        device.writeRegister(PCA9685Device.MODE1, (byte) newMode1);
 
-        LOGGER.debug("Writing prescale register with: {}", Integer.toHexString(prescale));
+        log.debug("Writing prescale register with: {}", Integer.toHexString(prescale));
         device.writeRegister(PCA9685Device.PRESCALE, (byte)prescale);
 
         newMode1 = oldMode1 & ~PCA9685Device.MODE1_SLEEP;
-        LOGGER.debug("Writing the old value back to mode1 register with sleep off to start osc again: {}", Integer.toHexString(newMode1));
-        device.writeRegister(PCA9685Device.MODE1, (byte)(newMode1));
+        log.debug("Writing the old value back to mode1 register with sleep off to start osc again: {}", Integer.toHexString(newMode1));
+        device.writeRegister(PCA9685Device.MODE1, (byte) (newMode1));
         // wait for oscillator to restart
         sleep(50);
         newMode1 = oldMode1 | PCA9685Device.MODE1_RESTART;
-        LOGGER.debug("Setting restart bit: {}", Integer.toHexString(newMode1));
-        device.writeRegister(PCA9685Device.MODE1, (byte)newMode1);
+        log.debug("Setting restart bit: {}", Integer.toHexString(newMode1));
+        device.writeRegister(PCA9685Device.MODE1, (byte) newMode1);
     }
 
     public int getPulseFrequency(){
@@ -119,20 +118,20 @@ public class AdafruitServoDriver implements ServoDriver {
 
 
     public int getPreScale(int frequency) throws IOException{
-        LOGGER.debug("Get prescale value for frequency {}", frequency);
+        log.debug("Get prescale value for frequency {}", frequency);
         double correctedFrequency = frequency * 0.9;  // Correct for overshoot in the frequency setting (see issue #11).
         double prescaleval = CLOCK_FREQUENCY;
         prescaleval /= RESOLUTION;
         prescaleval /= correctedFrequency;
         prescaleval -= 1.0;
-        LOGGER.debug("Estimated pre-scale {}", prescaleval);
+        log.debug("Estimated pre-scale {}", prescaleval);
         prescaleval = Math.round(prescaleval + 0.5);
 
         if(prescaleval > 254){
             throw new IOException("Specified frequency " + frequency + " results in prescale value " + prescaleval + " that exceed limit 254");
         }
         int prescale = (int)prescaleval;
-        LOGGER.debug("Final pre-scale {}", prescale);
+        log.debug("Final pre-scale {}", prescale);
         return prescale;
     }
 
@@ -146,21 +145,37 @@ public class AdafruitServoDriver implements ServoDriver {
 
     @Override
     public void updateServo(Servo servo) throws IOException {
+        if(servo.getChannel() > 15){
+            log.warn("Haven't implemented channels > 15");
+            return;
+        }
         // update cache first
-        cacheServo(servo);
-        int servoChannel = servo.getChannel();
-        int pulseLength = servo.getPulseLength(servo.getAngle());
+        if(isMoved(servo)) {
+            // only send update to servo if its position has actually moved.
+            cacheServo(servo);
+            int servoChannel = servo.getChannel();
+            int pulseLength = servo.getPulseLength(servo.getAngle());
 
-        // calc num counts for ms
-        long count = Math.round(pulseLength * RESOLUTION / ((double)1 / (double)getPulseFrequency()) / (double)1000000);
+            // calc num counts for ms
+            long count = Math.round(pulseLength * RESOLUTION / ((double) 1 / (double) getPulseFrequency()) / (double) 1000000);
 
-        LOGGER.debug("Updating servo position: {}, count: {}", servo.toString(), count);
+            log.debug("Updating servo position: {}, count: {}", servo.toString(), count);
 
-        byte[] offBytes = ByteUtils.get2ByteInt((int)count);
-        device.writeRegister(getRegisterForChannel(servoChannel, Register.ON_LOW), (byte) 0x00);
-        device.writeRegister(getRegisterForChannel(servoChannel, Register.ON_HIGH), (byte) 0x00);
-        device.writeRegister(getRegisterForChannel(servoChannel, Register.OFF_LOW), offBytes[ByteUtils.LOW_BYTE]);
-        device.writeRegister(getRegisterForChannel(servoChannel, Register.OFF_HIGH), offBytes[ByteUtils.HIGH_BYTE]);
+            byte[] offBytes = ByteUtils.get2ByteInt((int) count);
+            device.writeRegister(getRegisterForChannel(servoChannel, Register.ON_LOW), (byte) 0x00);
+            device.writeRegister(getRegisterForChannel(servoChannel, Register.ON_HIGH), (byte) 0x00);
+            device.writeRegister(getRegisterForChannel(servoChannel, Register.OFF_LOW), offBytes[ByteUtils.LOW_BYTE]);
+            device.writeRegister(getRegisterForChannel(servoChannel, Register.OFF_HIGH), offBytes[ByteUtils.HIGH_BYTE]);
+        }
+    }
+
+    private boolean isMoved(Servo servo){
+        Servo cached = servoCache[servo.getChannel()];
+        if(cached != null){
+            return cached.getAngle() != servo.getAngle();
+        }else{
+            return true;
+        }
     }
 
     private void cacheServo(Servo servo){
@@ -184,7 +199,7 @@ public class AdafruitServoDriver implements ServoDriver {
         try {
             Thread.sleep(millis);
         } catch (InterruptedException e) {
-            LOGGER.error("sleep interrupted.", e);
+            log.error("sleep interrupted.", e);
         }
     }
 

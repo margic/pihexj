@@ -2,13 +2,10 @@ package com.margic.camel.route;
 
 import com.margic.camel.PiHexCamelTestSupport;
 import com.margic.pihex.camel.route.EventBusRouteBuilder;
-import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Properties;
 
 /**
  * Created by paulcrofts on 3/27/15.
