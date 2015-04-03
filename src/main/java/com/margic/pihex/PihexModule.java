@@ -12,6 +12,7 @@ import com.margic.pihex.api.Controller;
 import com.margic.pihex.api.ServoDriver;
 import com.margic.pihex.camel.context.CustomCamelContext;
 import com.margic.pihex.camel.context.GuiceRegistry;
+import com.margic.pihex.model.Body;
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
 import com.pi4j.io.i2c.I2CFactory;
@@ -43,9 +44,10 @@ public class PihexModule extends AbstractModule {
     @Override
     protected void configure() {
         bind(EventBus.class).annotatedWith(Names.named("eventBus")).toInstance(new EventBus());
+        bind(Controller.class).annotatedWith(Names.named("controller")).to(PiHexController.class).in(Singleton.class);
+        bind(Body.class).annotatedWith((Names.named("body"))).to(Body.class).in(Singleton.class);
         bind(Registry.class).to(GuiceRegistry.class).in(Singleton.class);
         bind(CamelContext.class).to(CustomCamelContext.class).in(Singleton.class);
-        bind(Controller.class).to(PiHexController.class).in(Singleton.class);
     }
 
     @Singleton

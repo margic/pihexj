@@ -5,6 +5,7 @@ import com.google.inject.Injector;
 import com.margic.pihex.api.Controller;
 import com.margic.pihex.api.ServoDriver;
 import com.margic.pihex.camel.route.EventBusRouteBuilder;
+import com.margic.pihex.camel.route.ServoCalibrationRouteBuider;
 import org.apache.camel.CamelContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,5 +64,6 @@ public class PiHexDaemon {
 
     public void addRoutes(CamelContext context) throws Exception {
         context.addRoutes(new EventBusRouteBuilder());
+        context.addRoutes(new ServoCalibrationRouteBuider());
     }
 }

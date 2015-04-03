@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
  */
 public class CustomCamelContextTestSupport extends CamelTestSupport {
 
-    private static final Logger log = LoggerFactory.getLogger(CustomCamelContextTestSupport.class);
+    protected static final Logger log = LoggerFactory.getLogger(CustomCamelContextTestSupport.class);
 
     protected Injector injector = Guice.createInjector(new PihexModule());
 

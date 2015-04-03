@@ -36,8 +36,31 @@ public class Body {
         }
     }
 
+    public Leg[] getLegs(){ return legs; }
+
     public Leg getLeg(int leg){
         return legs[leg];
+    }
+
+    /**
+     * return the servo assigned to the channel
+     * @param channel
+     * @return
+     */
+    public Servo getServo(int channel){
+        // servos are assigned to servos on start up
+        int leg = channel / 3; // 3 servos per leg
+        int servo = channel % 3;
+        switch(servo){
+            case 0:
+                return legs[leg].getCoxa();
+            case 1:
+                return legs[leg].getFemur();
+            case 2:
+                return legs[leg].getTibia();
+            default:
+                return null;
+        }
     }
 
     /**

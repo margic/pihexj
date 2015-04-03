@@ -3,6 +3,7 @@ package com.margic.pihex.camel.route;
 import com.google.common.eventbus.Subscribe;
 import com.margic.pihex.event.ControlEvent;
 import com.margic.pihex.event.SensorInterruptEvent;
+import com.margic.pihex.model.ServoCalibration;
 import com.margic.pihex.event.ServoUpdateEvent;
 
 /**
@@ -33,5 +34,11 @@ public interface EventBusEvents {
      */
     @Subscribe
     public void sensorInterruptEvent(SensorInterruptEvent sensorEvent);
+
+    /**
+     * Event that represents a request to update a servo's calibration
+     */
+    @Subscribe
+    public void servoCalibrationEvent(ServoCalibration servoCalibration);
 
 }

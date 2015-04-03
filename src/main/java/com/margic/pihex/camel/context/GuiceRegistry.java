@@ -45,6 +45,7 @@ public class GuiceRegistry extends JndiRegistry {
             bind("configuration", config);
         }
         if (injector != null) {
+            StringBuilder boundObjects = new StringBuilder();
             log.debug("Binding guice objects to registry");
             Map<Key<?>, Binding<?>> bindings = injector.getBindings();
             for (Key key : bindings.keySet()) {
@@ -54,6 +55,11 @@ public class GuiceRegistry extends JndiRegistry {
                     Named named = (Named) key.getAnnotation();
                     String name = named.value();
                     bind(name, object);
+                    boundObjects.append("name: ")
+                            .append(name)
+                            .append(" object: ")
+                            .append(object.getClass().getCanonicalName())
+                            .append(System.getProperty("line.separator"));
                 }else {
                     javax.inject.Named annotation = (javax.inject.Named)key.getTypeLiteral().getRawType().getAnnotation(javax.inject.Named.class);
                     if(annotation != null) {
@@ -62,12 +68,21 @@ public class GuiceRegistry extends JndiRegistry {
                         if (name != null) {
                             Object object = injector.getInstance(key);
                             bind(name, object);
+                            boundObjects.append("name: ")
+                                    .append(name)
+                                    .append(" object: ")
+                                    .append(object.getClass().getCanonicalName())
+                                    .append(System.getProperty("line.separator"));
                         }
                     }
                 }
             }
+            log.info("Bound object to Camel Registry {}{}", System.getProperty("line.separator"), boundObjects.toString());
         }
     }
+
+
+
 
     /**
      * override create context for jndi registry to set the
