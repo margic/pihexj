@@ -1,6 +1,7 @@
 package com.margic.pihex;
 
 import com.margic.pihex.api.Controller;
+import com.margic.pihex.api.Servo;
 import com.margic.pihex.api.ServoDriver;
 import com.margic.pihex.event.ControlEvent;
 import com.margic.pihex.model.Body;
@@ -34,7 +35,8 @@ public class PiHexController implements Controller {
     }
 
     @Override
-    public void processServoCalibrationUpdate(ServoCalibration servoCalibration) {
-        log.debug("Received servo calibration event {}", servoCalibration);
+    public Servo getServo(int channel){
+        return body.getServo(channel);
     }
+
 }

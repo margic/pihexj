@@ -4,6 +4,7 @@ import com.margic.pihex.api.Servo;
 import com.margic.pihex.camel.converter.ServoCalibrationTypeConverter;
 import com.margic.pihex.model.ServoCalibration;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.model.rest.RestBindingMode;
 
 /**
@@ -22,14 +23,21 @@ public class ServoCalibrationRouteBuider extends RouteBuilder {
                 .put("/{channel}")
                 .consumes("application/json")
                 .type(ServoCalibration.class)
-                .to("guava-eventbus:{{config:com.margic.pihex.camel.eventBusName}}");
+                .to("direct:putServoCalibration");
 
 
         from("direct:getServoCalibration")
                 .routeId("getServoCalibration")
                 .setBody(header("channel"))
-                .to("bean:body?method=getServo")
+                .to("bean:controller?method=getServo")
                 .convertBodyTo(ServoCalibration.class);
+
+        // writes servo calibration to file one per servo for now. will consolidate later
+        from("direct:putServoCalibration")
+                .routeId("putServoCalibration")
+
+                .marshal().json(JsonLibrary.Jackson)
+                .to("{{config:com.margic.pihex.servo.calibration.uri}}?fileName=servo-${in.header.channel}.conf");
     }
 
 }
