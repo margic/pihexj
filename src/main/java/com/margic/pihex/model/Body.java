@@ -63,17 +63,6 @@ public class Body {
         }
     }
 
-    /**
-     * Call this method to send the current positions to
-     * the physical servos using the driver
-     */
-    public void updatePositions(ServoDriver driver) throws IOException{
-        for(Leg leg: legs){
-            driver.updateServo(leg.getCoxa());
-            driver.updateServo(leg.getFemur());
-            driver.updateServo(leg.getTibia());
-        }
-    }
 
     @Override
     public String toString() {

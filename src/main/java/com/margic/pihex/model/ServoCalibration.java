@@ -11,8 +11,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class ServoCalibration {
 
     private int channel;
-
-    private String name;
     private int range;
     private int center;
     private int lowLimit;
@@ -25,14 +23,6 @@ public class ServoCalibration {
 
     public void setChannel(int channel) {
         this.channel = channel;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public int getRange() {
@@ -71,7 +61,6 @@ public class ServoCalibration {
     public String toString(){
         return new ToStringBuilder(this)
                 .append("channel", channel)
-                .append("name", name)
                 .append("range", range)
                 .append("center", center)
                 .append("lowlimit", lowLimit)

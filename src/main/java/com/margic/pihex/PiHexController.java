@@ -5,11 +5,13 @@ import com.margic.pihex.api.Servo;
 import com.margic.pihex.api.ServoDriver;
 import com.margic.pihex.event.ControlEvent;
 import com.margic.pihex.model.Body;
+import com.margic.pihex.model.Leg;
 import com.margic.pihex.model.ServoCalibration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.io.IOException;
 
 /**
  * Created by paulcrofts on 3/29/15.
@@ -39,4 +41,37 @@ public class PiHexController implements Controller {
         return body.getServo(channel);
     }
 
+
+    @Override
+    public void updateServoCalibration(int channel, ServoCalibration servoCalibration) {
+        Servo servo = body.getServo(channel);
+        servo.setHighLimit(servoCalibration.getHighLimit());
+        servo.setLowLimit(servoCalibration.getLowLimit());
+        servo.setCenter(servoCalibration.getCenter());
+        servo.setRange(servoCalibration.getRange());
+
+        try {
+            driver.updateServo(servo);
+        }catch(IOException ioe){
+            log.error("Unable to update servo {}", servo, ioe);
+        }
+    }
+
+    /**
+     * Call this method to send the current positions to
+     * the physical servos using the driver
+     */
+    @Override
+    public void updateAllServos(){
+        Leg[] legs = body.getLegs();
+        try {
+            for (Leg leg : legs) {
+                driver.updateServo(leg.getCoxa());
+                driver.updateServo(leg.getFemur());
+                driver.updateServo(leg.getTibia());
+            }
+        }catch(Exception ioe){
+            log.error("Unable to update servo angles.", ioe);
+        }
+    }
 }

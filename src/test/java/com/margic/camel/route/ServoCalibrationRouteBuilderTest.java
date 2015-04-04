@@ -56,7 +56,7 @@ public class ServoCalibrationRouteBuilderTest extends CustomCamelContextTestSupp
                 .returnContent();
 
         log.info(content.asString());
-        JSONAssert.assertEquals("{\"channel\":0,\"name\":\"Leg 0 Coxa\",\"range\":180,\"center\":0,\"lowLimit\":-90,\"highLimit\":90}", content.asString(), false);
+        JSONAssert.assertEquals("{\"channel\":0,\"range\":180,\"center\":0,\"lowLimit\":-90,\"highLimit\":90}", content.asString(), false);
     }
 
 }

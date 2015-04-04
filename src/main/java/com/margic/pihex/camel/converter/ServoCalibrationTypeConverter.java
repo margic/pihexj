@@ -23,7 +23,6 @@ public class ServoCalibrationTypeConverter extends TypeConverterSupport {
             Servo servo = (Servo)value;
             ServoCalibration servoCalibration = new ServoCalibration();
             servoCalibration.setChannel(servo.getChannel());
-            servoCalibration.setName(servo.getName());
             servoCalibration.setCenter(servo.getCenter());
             servoCalibration.setHighLimit(servo.getHighLimit());
             servoCalibration.setLowLimit(servo.getLowLimit());
