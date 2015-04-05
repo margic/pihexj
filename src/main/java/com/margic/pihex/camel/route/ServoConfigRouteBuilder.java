@@ -10,7 +10,7 @@ import org.apache.camel.model.rest.RestBindingMode;
 /**
  * Created by paulcrofts on 4/2/15.
  */
-public class ServoConfigRouteBuider extends RouteBuilder {
+public class ServoConfigRouteBuilder extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {

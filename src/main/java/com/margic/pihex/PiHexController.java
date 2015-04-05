@@ -43,8 +43,8 @@ public class PiHexController implements Controller {
 
 
     @Override
-    public void handleServoConfigUpdateEvent(int channel, ServoConfig servoConfig) {
-        Servo servo = body.getServo(channel);
+    public void handleServoConfigUpdateEvent(ServoConfig servoConfig) {
+        Servo servo = body.getServo(servoConfig.getChannel());
         servo.setServoConfig(servoConfig);
         try {
             driver.updateServo(servo);

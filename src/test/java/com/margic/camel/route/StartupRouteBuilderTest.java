@@ -21,7 +21,9 @@ public class StartupRouteBuilderTest extends CustomCamelContextTestSupport {
     @Override
     protected RouteBuilder[] createRouteBuilders() throws Exception {
         RouteBuilder[] routes = new RouteBuilder[2];
-        routes[0] = new StartupRouteBuilder();
+        StartupRouteBuilder startupRoute = new StartupRouteBuilder();
+        startupRoute.setLoadServoConfigToUri("mock:startup");
+        routes[0] = startupRoute;
         routes[1] = new EventBusRouteBuilder();
         return routes;
     }
@@ -29,15 +31,14 @@ public class StartupRouteBuilderTest extends CustomCamelContextTestSupport {
     @Test
     public void startupTest() throws Exception{
 
-        MockEndpoint mock = getMockEndpoint("mock:startupMock");
+        MockEndpoint mock = getMockEndpoint("mock:startup");
 
-        mock.expectedMessageCount(1);
+        mock.expectedMessageCount(2);
         // get the event bus and trigger start event
         EventBus eventBus = context().getRegistry().lookupByNameAndType("eventBus", EventBus.class);
 
         eventBus.post(new StartupEvent());
-
-        assertMockEndpointsSatisfied(1, TimeUnit.SECONDS);
+        assertMockEndpointsSatisfied(10, TimeUnit.SECONDS);
 
     }
 }

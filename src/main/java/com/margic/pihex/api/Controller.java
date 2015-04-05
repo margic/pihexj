@@ -21,7 +21,7 @@ public interface Controller {
     Servo getServo(int channel);
 
 
-    void handleServoConfigUpdateEvent(int channel, ServoConfig servoConfig);
+    void handleServoConfigUpdateEvent(ServoConfig servoConfig);
 
     /**
      * This method updates the physical angle of all servos

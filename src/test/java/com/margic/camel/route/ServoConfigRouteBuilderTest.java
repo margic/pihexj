@@ -2,7 +2,7 @@ package com.margic.camel.route;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.margic.camel.CustomCamelContextTestSupport;
-import com.margic.pihex.camel.route.ServoConfigRouteBuider;
+import com.margic.pihex.camel.route.ServoConfigRouteBuilder;
 import com.margic.pihex.model.ServoConfig;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
@@ -21,7 +21,7 @@ import java.io.FileReader;
 /**
  * Created by paulcrofts on 4/2/15.
  */
-public class ServoCalibrationRouteBuilderTest extends CustomCamelContextTestSupport {
+public class ServoConfigRouteBuilderTest extends CustomCamelContextTestSupport {
     private int port;
 
     @Override
@@ -29,7 +29,7 @@ public class ServoCalibrationRouteBuilderTest extends CustomCamelContextTestSupp
         log.info(System.getProperties().toString());
         port = AvailablePortFinder.getNextAvailable(8080);
         setConfigurationProperty("com.margic.pihex.api.port", Integer.toString(port));
-        return new ServoConfigRouteBuider();
+        return new ServoConfigRouteBuilder();
     }
 
     @Test
@@ -58,7 +58,7 @@ public class ServoCalibrationRouteBuilderTest extends CustomCamelContextTestSupp
         try(BufferedReader bufferedReader = new BufferedReader(new FileReader(confFile))){
             String savedJson = bufferedReader.readLine();
             log.info("JSON written to conf file: {}", savedJson);
-            JSONAssert.assertEquals(testJson, savedJson, false);
+            JSONAssert.assertEquals(testJson, savedJson, true);
         }
     }
 
@@ -73,7 +73,7 @@ public class ServoCalibrationRouteBuilderTest extends CustomCamelContextTestSupp
                 .returnContent();
 
         log.info(content.asString());
-        JSONAssert.assertEquals("{\"channel\":0,\"range\":180,\"center\":0,\"lowLimit\":-90,\"highLimit\":90}", content.asString(), false);
+        JSONAssert.assertEquals("{\"name\":\"Leg 0 Coxa\",\"channel\":0,\"range\":180,\"center\":0,\"lowLimit\":-90,\"highLimit\":90}", content.asString(), true);
     }
 
 }

@@ -38,17 +38,17 @@ public class PihexControllerTest {
 
     @Test
     public void testUpdateServoCalibration() throws Exception {
-        ServoConfig calibration = new ServoConfig();
-        calibration.setCenter(1);
-        calibration.setHighLimit(80);
-        calibration.setLowLimit(-80);
-        calibration.setRange(190);
+        ServoConfig config = new ServoConfig();
+        config.setCenter(1);
+        config.setHighLimit(80);
+        config.setLowLimit(-80);
+        config.setRange(190);
 
-        controller.handleServoConfigUpdateEvent(0, calibration);
+        controller.handleServoConfigUpdateEvent(config);
 
         Servo servo = controller.getServo(0);
 
-        // validate calibration
+        // validate config
         assertEquals(1, servo.getServoConfig().getCenter());
         assertEquals(80, servo.getServoConfig().getHighLimit());
         assertEquals(-80, servo.getServoConfig().getLowLimit());
