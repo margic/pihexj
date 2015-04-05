@@ -36,9 +36,19 @@ public class ServoConfigRouteBuilder extends RouteBuilder {
         // writes servo calibration to file one per servo for now. will consolidate later
         from("direct:putServoConfig")
                 .routeId("putServoConfig")
-                .marshal().json(JsonLibrary.Jackson)
-                .to("file://{{config:com.margic.pihex.servo.conf}}?fileName=servo-${in.header.channel}.conf")
+                .multicast()
+                    .to("direct:updateRunningConfig")
+                    .to("direct:writeConfigToFile")
+                .end()
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("204"));
+
+        from("direct:updateRunningConfig")
+                .to("bean:controller?method=handleServoConfigUpdateEvent")
+                .to("guava-eventbus:eventBus");
+
+        from("direct:writeConfigToFile")
+                .marshal().json(JsonLibrary.Jackson)
+                .to("file://{{config:com.margic.pihex.servo.conf}}?fileName=servo-${in.header.channel}.conf");
     }
 
 }

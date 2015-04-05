@@ -3,19 +3,18 @@ package com.margic.camel.route;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.eventbus.EventBus;
 import com.margic.camel.CustomCamelContextTestSupport;
+import com.margic.pihex.ServoImpl;
 import com.margic.pihex.camel.route.EventBusRouteBuilder;
 import com.margic.pihex.camel.route.StartupRouteBuilder;
 import com.margic.pihex.event.StartupEvent;
 import com.margic.pihex.model.ServoConfig;
 import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.junit.Test;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.*;
 
 /**
  * Created by paulcrofts on 4/4/15.
@@ -37,6 +36,16 @@ public class StartupRouteBuilderTest extends CustomCamelContextTestSupport {
     public void startupTest() throws Exception{
 
         MockEndpoint mock = getMockEndpoint("mock:startup");
+
+        mock.whenAnyExchangeReceived(new Processor() {
+            @Override
+            public void process(Exchange exchange) throws Exception {
+                exchange.getOut().setBody(new ServoImpl.Builder()
+                        .servoConfig(new ServoConfig.Builder().center(0).channel(0).name("TestServo").build())
+                        .build());
+            }
+        });
+
 
         mock.expectedMessageCount(2);
 

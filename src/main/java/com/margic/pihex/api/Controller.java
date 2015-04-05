@@ -21,11 +21,17 @@ public interface Controller {
     Servo getServo(int channel);
 
 
-    void handleServoConfigUpdateEvent(ServoConfig servoConfig);
+    /**
+     * Updates the servo specified by the servo config and returns that servo
+     * @param servoConfig
+     * @return
+     */
+    Servo handleServoConfigUpdateEvent(ServoConfig servoConfig);
 
     /**
-     * This method updates the physical angle of all servos
+     * this method updates a single servos physical position
+     * @param servo
      */
-    void updateAllServos();
+    void handleUpdateServoEvent(Servo servo);
 
 }

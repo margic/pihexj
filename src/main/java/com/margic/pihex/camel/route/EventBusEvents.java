@@ -1,29 +1,32 @@
 package com.margic.pihex.camel.route;
 
 import com.google.common.eventbus.Subscribe;
+import com.margic.pihex.api.Servo;
 import com.margic.pihex.event.ControlEvent;
 import com.margic.pihex.event.SensorInterruptEvent;
 import com.margic.pihex.event.StartupEvent;
-import com.margic.pihex.model.ServoConfig;
-import com.margic.pihex.event.ServoUpdateEvent;
 
 /**
  * Created by paulcrofts on 3/26/15.
- *
+ * <p>
  * This interface is used to provide the types of events that will
  * be processed by camel from the event bus.
  */
 public interface EventBusEvents {
 
     /**
-     * Low level servo update event causes a servo position to be updated
+     * Posting a servo object to the bus will send the
+     * servo to a seda queue for serial processing of updates
+     * to position of servos
+     *
      * @param servoUpdateEvent
      */
     @Subscribe
-    public void servoUpdateEvent(ServoUpdateEvent servoUpdateEvent);
+    public void servoUpdateEvent(Servo servoUpdateEvent);
 
     /**
      * An event that should cause the robot to move
+     *
      * @param moveEvent
      */
     @Subscribe
@@ -31,16 +34,11 @@ public interface EventBusEvents {
 
     /**
      * Event that represents feedback coming from a sensor
+     *
      * @param sensorEvent
      */
     @Subscribe
     public void sensorInterruptEvent(SensorInterruptEvent sensorEvent);
-
-    /**
-     * Event that represents a request to update a servo's calibration
-     */
-    @Subscribe
-    public void servoCalibrationEvent(ServoConfig servoConfig);
 
     @Subscribe
     public void startUpEvent(StartupEvent startupEvent);

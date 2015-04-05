@@ -2,6 +2,7 @@ package com.margic.camel.route;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.margic.camel.CustomCamelContextTestSupport;
+import com.margic.pihex.camel.route.EventBusRouteBuilder;
 import com.margic.pihex.camel.route.ServoConfigRouteBuilder;
 import com.margic.pihex.model.ServoConfig;
 import org.apache.camel.builder.RouteBuilder;
@@ -23,12 +24,12 @@ public class ServoConfigPutRouteBuilderTest extends CustomCamelContextTestSuppor
     private int port;
 
     @Override
-    protected RouteBuilder createRouteBuilder() throws Exception {
+    protected RouteBuilder[] createRouteBuilders() throws Exception {
         log.info(System.getProperties().toString());
         port = AvailablePortFinder.getNextAvailable(8080);
         setConfigurationProperty("com.margic.pihex.api.port", Integer.toString(port));
         setConfigurationProperty("com.margic.pihex.servo.conf", "${sys:user.dir}/target/test-classes/confwritetest/conf/");
-        return new ServoConfigRouteBuilder();
+        return new RouteBuilder[]{new ServoConfigRouteBuilder(), new EventBusRouteBuilder()};
     }
 
     @Test

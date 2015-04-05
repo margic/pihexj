@@ -37,7 +37,7 @@ public class PihexControllerTest {
     }
 
     @Test
-    public void testUpdateServoCalibration() throws Exception {
+    public void testUpdateServoConfig() throws Exception {
         ServoConfig config = new ServoConfig();
         config.setCenter(1);
         config.setHighLimit(80);

@@ -43,33 +43,27 @@ public class PiHexController implements Controller {
 
 
     @Override
-    public void handleServoConfigUpdateEvent(ServoConfig servoConfig) {
+    public Servo handleServoConfigUpdateEvent(ServoConfig servoConfig) {
         Servo servo = body.getServo(servoConfig.getChannel());
         servo.setServoConfig(servoConfig);
-        try {
-            driver.updateServo(servo);
-        }catch(IOException ioe){
-            log.error("Unable to update servo {}", servo, ioe);
-        }
+        return servo;
     }
 
     /**
-     * Call this method to send the current positions to
-     * the physical servos using the driver
+     * We don't call the implementation of the handleUpdateServoEvent directly
+     * we invoke this by posting a servo object ot the eventbus
+     * This allows the system to manage the queuing of requests to move servos
+     * and handle dequeuing of the events one by one. The driver cannot process
+     * more than one event at the same time as the interface to the device is a
+     * serial device.
+     * @param servo
      */
     @Override
-    public void updateAllServos(){
-        Leg[] legs = body.getLegs();
+    public void handleUpdateServoEvent(Servo servo) {
         try {
-            for (Leg leg : legs) {
-                driver.updateServo(leg.getCoxa());
-                driver.updateServo(leg.getFemur());
-                driver.updateServo(leg.getTibia());
-            }
-        }catch(Exception ioe){
-            log.error("Unable to update servo angles.", ioe);
+            driver.updateServo(servo);
+        }catch (IOException ioe){
+            log.error("Failed to update servo {}", servo, ioe);
         }
     }
-
-
 }

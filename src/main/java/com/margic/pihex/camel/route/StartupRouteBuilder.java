@@ -29,6 +29,7 @@ public class StartupRouteBuilder extends RouteBuilder {
                 .convertBodyTo(String.class)
                 .unmarshal().json(JsonLibrary.Jackson, ServoConfig.class)
                 .to(getLoadServoConfigToUri())
+                .to("bean:controller?method=handleUpdateServoEvent")
                 .choice()
                     .when(exchangeProperty("CamelBatchComplete").isEqualTo(true))
                     .log(LoggingLevel.INFO, "Loaded all servo conf files stopping loader")
