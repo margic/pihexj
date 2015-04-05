@@ -3,6 +3,7 @@ package com.margic.pihex.camel.route;
 import com.margic.pihex.api.Servo;
 import com.margic.pihex.camel.converter.ServoCalibrationTypeConverter;
 import com.margic.pihex.model.ServoConfig;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.model.rest.RestBindingMode;

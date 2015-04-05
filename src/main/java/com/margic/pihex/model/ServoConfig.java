@@ -1,6 +1,8 @@
 package com.margic.pihex.model;
 
 import com.margic.pihex.api.Servo;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,5 +137,30 @@ public class ServoConfig {
         public ServoConfig build() {
             return newConfig;
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(11, 91)
+                .append(name)
+                .append(channel)
+                .toHashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) { return false; }
+        if (obj == this) { return true; }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+        ServoConfig rhs = (ServoConfig) obj;
+        return new EqualsBuilder()
+                .append(channel, rhs.channel)
+                .append(name, rhs.name)
+                .append(center, rhs.center)
+                .append(lowLimit, rhs.lowLimit)
+                .append(highLimit, rhs.highLimit)
+                .isEquals();
     }
 }

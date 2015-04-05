@@ -1,8 +1,10 @@
 package com.margic.pihex.camel.route;
 
 import com.margic.pihex.model.ServoConfig;
+import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.LoggingLevel;
+import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 
@@ -17,6 +19,7 @@ public class StartupRouteBuilder extends RouteBuilder {
     @Override
     public void configure() throws Exception {
         from("direct-vm:handleStartupEvent")
+                .routeId("handleStartupEventRoute")
                 .log(LoggingLevel.INFO, "Starting loadServoConfigRoute")
                 .to("controlbus:route?routeId=loadServoConfig&action=start");
 
@@ -29,7 +32,7 @@ public class StartupRouteBuilder extends RouteBuilder {
                 .choice()
                     .when(exchangeProperty("CamelBatchComplete").isEqualTo(true))
                     .log(LoggingLevel.INFO, "Loaded all servo conf files stopping loader")
-                    .stop()
+                    .process(new StopProcessor())
                 .endChoice();
     }
 
@@ -48,6 +51,31 @@ public class StartupRouteBuilder extends RouteBuilder {
             return DEFAULT_LOAD_SERVO_CONFIG_TO_URI;
         }else{
             return loadServoConfigToUri;
+        }
+    }
+
+    class StopProcessor implements Processor{
+        Thread stop;
+
+        @Override
+        public void process(final Exchange exchange) throws Exception {
+            // stop this route using a thread that will stop
+            // this route gracefully while we are still running
+            if (stop == null) {
+                stop = new Thread() {
+                    @Override
+                    public void run() {
+                        try {
+                            exchange.getContext().stopRoute("loadServoConfig");
+                        } catch (Exception e) {
+                            // ignore
+                        }
+                    }
+                };
+            }
+
+            // start the thread that stops this route
+            stop.start();
         }
     }
 }

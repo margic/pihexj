@@ -29,6 +29,7 @@ public class ServoConfigRouteBuilderTest extends CustomCamelContextTestSupport {
         log.info(System.getProperties().toString());
         port = AvailablePortFinder.getNextAvailable(8080);
         setConfigurationProperty("com.margic.pihex.api.port", Integer.toString(port));
+        setConfigurationProperty("com.margic.pihex.servo.conf", "${sys:user.dir}/target/test-classes/confwritetest/conf/");
         return new ServoConfigRouteBuilder();
     }
 
