@@ -23,4 +23,18 @@ public class CustomCamelContext extends DefaultCamelContext {
         PropertiesComponent pc = getComponent("properties", PropertiesComponent.class);
         pc.addFunction(new ConfigurationPropertiesFunction(config));
     }
+
+    /**
+     * Provides a way to add a start listener to kick off the
+     * post start events. Injected as an optional binding so the
+     * test cases can start the camel context without triggering off
+     * the extra post starup events.
+     * @param listener
+     * @throws Exception
+     */
+    @Inject(optional = true)
+    @Override
+    public void addStartupListener(org.apache.camel.StartupListener listener) throws Exception {
+        super.addStartupListener(listener);
+    }
 }

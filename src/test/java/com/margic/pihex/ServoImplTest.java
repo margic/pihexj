@@ -1,6 +1,7 @@
 package com.margic.pihex;
 
 import com.margic.pihex.api.Servo;
+import com.margic.pihex.model.ServoConfig;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,41 +18,43 @@ public class ServoImplTest {
     @Test
     public void testServoBuilder() {
         Servo servo = new ServoImpl.Builder()
-                .center(10)
-                .channel(1)
-                .name("Test Name")
+                .servoConfig(new ServoConfig.Builder()
+                        .center(10)
+                        .channel(1)
+                        .name("Test Name")
+                        .range(120)
+                        .lowLimit(-110)
+                        .highLimit(111)
+                        .build())
                 .angle(90)
-                .range(120)
-                .lowLimit(-110)
-                .highLimit(111)
                 .build();
 
         // test the builder built the object correctly
         assertEquals(90, servo.getAngle());
-        assertEquals(10, servo.getCenter());
-        assertEquals(120, servo.getRange());
-        assertEquals(-110, servo.getLowLimit());
-        assertEquals(111, servo.getHighLimit());
-        assertEquals("Test Name", servo.getName());
-        assertEquals(1, servo.getChannel());
+        assertEquals(10, servo.getServoConfig().getCenter());
+        assertEquals(120, servo.getServoConfig().getRange());
+        assertEquals(-110, servo.getServoConfig().getLowLimit());
+        assertEquals(111, servo.getServoConfig().getHighLimit());
+        assertEquals("Test Name", servo.getServoConfig().getName());
+        assertEquals(1, servo.getServoConfig().getChannel());
 
         // set all the values
-        servo.setName("Test1");
+        servo.getServoConfig().setName("Test1");
         servo.setAngle(45);
-        servo.setCenter(20);
-        servo.setChannel(2);
-        servo.setRange(140);
-        servo.setLowLimit(-100);
-        servo.setHighLimit(101);
+        servo.getServoConfig().setCenter(20);
+        servo.getServoConfig().setChannel(2);
+        servo.getServoConfig().setRange(140);
+        servo.getServoConfig().setLowLimit(-100);
+        servo.getServoConfig().setHighLimit(101);
 
         // test the setters
         assertEquals(45, servo.getAngle());
-        assertEquals(20, servo.getCenter());
-        assertEquals("Test1", servo.getName());
-        assertEquals(2, servo.getChannel());
-        assertEquals(140, servo.getRange());
-        assertEquals(-100, servo.getLowLimit());
-        assertEquals(101, servo.getHighLimit());
+        assertEquals(20, servo.getServoConfig().getCenter());
+        assertEquals("Test1", servo.getServoConfig().getName());
+        assertEquals(2, servo.getServoConfig().getChannel());
+        assertEquals(140, servo.getServoConfig().getRange());
+        assertEquals(-100, servo.getServoConfig().getLowLimit());
+        assertEquals(101, servo.getServoConfig().getHighLimit());
 
     }
 
@@ -61,9 +64,11 @@ public class ServoImplTest {
      */
     private Servo getTestServo(){
         return new ServoImpl.Builder()
-                .name("TestServo")
-                .channel(0)
-                .center(0)
+                .servoConfig(new ServoConfig.Builder()
+                        .name("TestServo")
+                        .channel(0)
+                        .center(0)
+                        .build())
                 .build();
     }
 
@@ -86,21 +91,21 @@ public class ServoImplTest {
 
         log.info("Testing CENTER calibrated to +5");
         servo = getTestServo(); // resets the servo to new object
-        servo.setCenter(5);
+        servo.getServoConfig().setCenter(5);
         servo.setAngle(0);
         assertPulse(servo, 1528);
 
         log.info("Testing CENTER a lower range of 120 center");
         servo = getTestServo(); // resets the servo to new object
-        servo.setCenter(0);
-        servo.setRange(120);
+        servo.getServoConfig().setCenter(0);
+        servo.getServoConfig().setRange(120);
         servo.setAngle(0);
         assertPulse(servo, 1500);
 
         log.info("Testing CENTER a lower range of 120 center calibrated to + 5");
         servo = getTestServo(); // resets the servo to new object
-        servo.setCenter(5);
-        servo.setRange(120);
+        servo.getServoConfig().setCenter(5);
+        servo.getServoConfig().setRange(120);
         servo.setAngle(0);
         assertPulse(servo, 1542);
 
@@ -118,7 +123,7 @@ public class ServoImplTest {
         log.info(("Testing MAX beyond limit within range"));
         servo = getTestServo();
         servo.setAngle(90);
-        servo.setHighLimit(80);
+        servo.getServoConfig().setHighLimit(80);
         assertPulse(servo, 1944);
 
 
@@ -136,7 +141,7 @@ public class ServoImplTest {
         log.info(("Testing MIN beyond limit within range"));
         servo = getTestServo();
         servo.setAngle(-90);
-        servo.setLowLimit(-80);
+        servo.getServoConfig().setLowLimit(-80);
         assertPulse(servo, 1056);
 
 

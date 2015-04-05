@@ -6,7 +6,7 @@ import com.margic.pihex.api.ServoDriver;
 import com.margic.pihex.event.ControlEvent;
 import com.margic.pihex.model.Body;
 import com.margic.pihex.model.Leg;
-import com.margic.pihex.model.ServoCalibration;
+import com.margic.pihex.model.ServoConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +32,7 @@ public class PiHexController implements Controller {
 
 
     @Override
-    public void processControlEvent(ControlEvent event) {
+    public void handleControlEvent(ControlEvent event) {
         log.debug("Received control event {}", event);
     }
 
@@ -43,13 +43,9 @@ public class PiHexController implements Controller {
 
 
     @Override
-    public void updateServoCalibration(int channel, ServoCalibration servoCalibration) {
+    public void handleServoConfigUpdateEvent(int channel, ServoConfig servoConfig) {
         Servo servo = body.getServo(channel);
-        servo.setHighLimit(servoCalibration.getHighLimit());
-        servo.setLowLimit(servoCalibration.getLowLimit());
-        servo.setCenter(servoCalibration.getCenter());
-        servo.setRange(servoCalibration.getRange());
-
+        servo.setServoConfig(servoConfig);
         try {
             driver.updateServo(servo);
         }catch(IOException ioe){
@@ -74,4 +70,6 @@ public class PiHexController implements Controller {
             log.error("Unable to update servo angles.", ioe);
         }
     }
+
+
 }

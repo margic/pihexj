@@ -145,7 +145,7 @@ public class AdafruitServoDriver implements ServoDriver {
 
     @Override
     public void updateServo(Servo servo) throws IOException {
-        if(servo.getChannel() > 15){
+        if(servo.getServoConfig().getChannel() > 15){
             log.warn("Haven't implemented channels > 15");
             return;
         }
@@ -153,7 +153,7 @@ public class AdafruitServoDriver implements ServoDriver {
         if(isMoved(servo)) {
             // only send update to servo if its position has actually moved.
             cacheServo(servo);
-            int servoChannel = servo.getChannel();
+            int servoChannel = servo.getServoConfig().getChannel();
             int pulseLength = servo.getPulseLength(servo.getAngle());
 
             // calc num counts for ms
@@ -170,7 +170,7 @@ public class AdafruitServoDriver implements ServoDriver {
     }
 
     private boolean isMoved(Servo servo){
-        Servo cached = servoCache[servo.getChannel()];
+        Servo cached = servoCache[servo.getServoConfig().getChannel()];
         if(cached != null){
             return cached.getAngle() != servo.getAngle();
         }else{
@@ -179,7 +179,7 @@ public class AdafruitServoDriver implements ServoDriver {
     }
 
     private void cacheServo(Servo servo){
-        int servoChannel = servo.getChannel();
+        int servoChannel = servo.getServoConfig().getChannel();
         servoCache[servoChannel] = servo;
     }
 

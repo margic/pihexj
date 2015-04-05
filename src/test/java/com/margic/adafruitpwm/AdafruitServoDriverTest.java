@@ -2,6 +2,7 @@ package com.margic.adafruitpwm;
 
 import com.margic.pihex.ServoImpl;
 import com.margic.pihex.api.Servo;
+import com.margic.pihex.model.ServoConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -65,8 +66,10 @@ public class AdafruitServoDriverTest {
     @Test
     public void testUpdateServo() throws IOException{
         Servo servo = new ServoImpl.Builder()
+                .servoConfig(new ServoConfig.Builder()
+                        .center(0)
+                        .build())
                 .angle(0)
-                .channel(0)
                 .build();
         driver.updateServo(servo);
         mockDevice.dumpRegisters();
@@ -77,7 +80,7 @@ public class AdafruitServoDriverTest {
         assertEquals(0x33, mockDevice.readRegister(PCA9685Device.LED0_OFF_LOW));
         assertEquals(0x01, mockDevice.readRegister(PCA9685Device.LED0_OFF_HIGH));
 
-        servo.setChannel(2);
+        servo.getServoConfig().setChannel(2);
         servo.setAngle(90);
         driver.updateServo(servo);
 

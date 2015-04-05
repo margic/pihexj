@@ -16,12 +16,12 @@ public class BodyTest {
         Body body = new Body();
 
         Servo servo = body.getServo(0);
-        assertEquals(0, servo.getChannel());
+        assertEquals(0, servo.getServoConfig().getChannel());
 
         servo = body.getServo(3);
-        assertEquals(3, servo.getChannel());
+        assertEquals(3, servo.getServoConfig().getChannel());
 
         servo = body.getServo(17);
-        assertEquals(17, servo.getChannel());
+        assertEquals(17, servo.getServoConfig().getChannel());
     }
 }

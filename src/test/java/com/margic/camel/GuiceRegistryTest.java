@@ -20,12 +20,12 @@ import static org.junit.Assert.assertNotNull;
 public class GuiceRegistryTest {
 
     @Named("myBean")
-    static class TestClass{
+    static class TestClass {
         // this is just an empty class bound to name myBean for test
     }
 
     @Test
-    public void testBindCamelRegistryAnnotation(){
+    public void testBindCamelRegistryAnnotation() {
         // need injector
         Injector injector = Guice.createInjector(new AbstractModule() {
             @Override
@@ -42,7 +42,7 @@ public class GuiceRegistryTest {
     }
 
     @Test
-    public void testBindCamelRegistryNamedAnnotation(){
+    public void testBindCamelRegistryNamedAnnotation() {
         Injector injector = Guice.createInjector(new AbstractModule() {
             @Override
             protected void configure() {
@@ -51,7 +51,7 @@ public class GuiceRegistryTest {
         });
 
         GuiceRegistry registry = new GuiceRegistry(injector, null);
-        String testString = (String)registry.lookup("testName");
+        String testString = (String) registry.lookup("testName");
         assertEquals("My String Value", testString);
 
         testString = registry.lookup("testName", String.class);

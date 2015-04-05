@@ -17,6 +17,7 @@ import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
 import com.pi4j.io.i2c.I2CFactory;
 import org.apache.camel.CamelContext;
+import org.apache.camel.StartupListener;
 import org.apache.camel.spi.Registry;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -46,6 +47,7 @@ public class PihexModule extends AbstractModule {
         bind(EventBus.class).annotatedWith(Names.named("eventBus")).toInstance(new EventBus());
         bind(Controller.class).annotatedWith(Names.named("controller")).to(PiHexController.class).in(Singleton.class);
         bind(Body.class).annotatedWith((Names.named("body"))).to(Body.class).in(Singleton.class);
+        bind(StartupListener.class).to(com.margic.pihex.camel.context.StartupListener.class);
         bind(Registry.class).to(GuiceRegistry.class).in(Singleton.class);
         bind(CamelContext.class).to(CustomCamelContext.class).in(Singleton.class);
     }
