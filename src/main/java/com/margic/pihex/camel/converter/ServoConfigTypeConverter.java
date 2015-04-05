@@ -11,13 +11,13 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by paulcrofts on 4/2/15.
  */
-public class ServoCalibrationTypeConverter extends TypeConverterSupport {
+public class ServoConfigTypeConverter extends TypeConverterSupport {
 
-    private static final Logger log = LoggerFactory.getLogger(ServoCalibrationTypeConverter.class);
+    private static final Logger log = LoggerFactory.getLogger(ServoConfigTypeConverter.class);
 
     @Override
     public <T> T convertTo(Class<T> type, Exchange exchange, Object value) throws TypeConversionException {
-        log.debug("Extracting servo calibration from servo using converter");
+        log.debug("Extracting servo config from servo using converter object {}", value);
 
         if(value instanceof Servo && type.equals(ServoConfig.class)){
             Servo servo = (Servo)value;

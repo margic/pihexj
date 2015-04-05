@@ -1,9 +1,9 @@
 package com.margic.pihex.camel.route;
 
 import com.margic.pihex.api.Servo;
-import com.margic.pihex.camel.converter.ServoCalibrationTypeConverter;
+import com.margic.pihex.camel.converter.ServoConfigTypeConverter;
 import com.margic.pihex.model.ServoConfig;
-import org.apache.camel.LoggingLevel;
+import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.model.rest.RestBindingMode;
@@ -15,29 +15,30 @@ public class ServoConfigRouteBuilder extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        getContext().getTypeConverterRegistry().addTypeConverter(ServoConfig.class, Servo.class, new ServoCalibrationTypeConverter());
+        getContext().getTypeConverterRegistry().addTypeConverter(ServoConfig.class, Servo.class, new ServoConfigTypeConverter());
         restConfiguration().component("jetty").host("{{config:com.margic.pihex.api.address}}").port("{{config:com.margic.pihex.api.port}}").bindingMode(RestBindingMode.auto);
 
-        rest("/servoCalibration/")
+        rest("/servoconfig/")
                 .get("/{channel}")
                 .outType(ServoConfig.class)
-                .to("direct:getServoCalibration")
+                .to("direct:getServoConfig")
                 .put("/{channel}")
                 .consumes("application/json")
                 .type(ServoConfig.class)
-                .to("direct:putServoCalibration");
+                .to("direct:putServoConfig");
 
-        from("direct:getServoCalibration")
-                .routeId("getServoCalibration")
+        from("direct:getServoConfig")
+                .routeId("getServoConfig")
                 .setBody(header("channel"))
                 .to("bean:controller?method=getServo")
                 .convertBodyTo(ServoConfig.class);
 
         // writes servo calibration to file one per servo for now. will consolidate later
-        from("direct:putServoCalibration")
-                .routeId("putServoCalibration")
+        from("direct:putServoConfig")
+                .routeId("putServoConfig")
                 .marshal().json(JsonLibrary.Jackson)
-                .to("file://{{config:com.margic.pihex.servo.conf}}?fileName=servo-${in.header.channel}.conf");
+                .to("file://{{config:com.margic.pihex.servo.conf}}?fileName=servo-${in.header.channel}.conf")
+                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("204"));
     }
 
 }

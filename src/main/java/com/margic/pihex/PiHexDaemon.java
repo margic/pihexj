@@ -6,6 +6,7 @@ import com.margic.pihex.api.Controller;
 import com.margic.pihex.api.ServoDriver;
 import com.margic.pihex.camel.route.EventBusRouteBuilder;
 import com.margic.pihex.camel.route.ServoConfigRouteBuilder;
+import com.margic.pihex.camel.route.StartupRouteBuilder;
 import org.apache.camel.CamelContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,19 +24,16 @@ import org.slf4j.LoggerFactory;
 public class PiHexDaemon {
 
     private static final Logger log = LoggerFactory.getLogger(PiHexDaemon.class);
-    private Injector injector;
     private CamelContext context;
-    private Controller controller;
 
     public void init(String[] args) {
         log.info("Initializing PiHex Service");
-        injector = Guice.createInjector(new PihexModule());
+        Injector injector = Guice.createInjector(new PihexModule());
         context = injector.getInstance(CamelContext.class);
     }
 
     public void start() {
         log.info("Startup PiHex Service");
-        ServoDriver driver = injector.getInstance(ServoDriver.class);
         try {
             context.setAllowUseOriginalMessage(false);
             addRoutes(context);
@@ -45,7 +43,6 @@ public class PiHexDaemon {
         } catch (Exception e) {
             log.error("Error starting camel context", e);
         }
-        controller = injector.getInstance(Controller.class);
     }
 
     public void stop() {
@@ -65,5 +62,6 @@ public class PiHexDaemon {
     public void addRoutes(CamelContext context) throws Exception {
         context.addRoutes(new EventBusRouteBuilder());
         context.addRoutes(new ServoConfigRouteBuilder());
+        context.addRoutes(new StartupRouteBuilder());
     }
 }
