@@ -30,7 +30,7 @@ public class ServoConfigRouteBuilder extends RouteBuilder {
         from("direct:getServoConfig")
                 .routeId("getServoConfig")
                 .setBody(header("channel"))
-                .to("bean:controller?method=getServo")
+                .to("bean:controller")
                 .convertBodyTo(ServoConfig.class);
 
         // writes servo calibration to file one per servo for now. will consolidate later
@@ -43,7 +43,7 @@ public class ServoConfigRouteBuilder extends RouteBuilder {
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("204"));
 
         from("direct:updateRunningConfig")
-                .to("bean:controller?method=handleServoConfigUpdateEvent")
+                .to("bean:controller")
                 .to("guava-eventbus:eventBus");
 
         from("direct:writeConfigToFile")

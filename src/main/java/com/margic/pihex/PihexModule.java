@@ -1,5 +1,6 @@
 package com.margic.pihex;
 
+import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -27,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Singleton;
 import java.io.IOException;
+import java.util.concurrent.Executors;
 
 
 /**
@@ -44,7 +46,7 @@ public class PihexModule extends AbstractModule {
      */
     @Override
     protected void configure() {
-        bind(EventBus.class).annotatedWith(Names.named("eventBus")).toInstance(new EventBus());
+        bind(EventBus.class).annotatedWith(Names.named("eventBus")).toInstance(new AsyncEventBus(Executors.newCachedThreadPool()));
         bind(Controller.class).annotatedWith(Names.named("controller")).to(PiHexController.class).in(Singleton.class);
         bind(Body.class).annotatedWith((Names.named("body"))).to(Body.class).in(Singleton.class);
         bind(StartupListener.class).to(com.margic.pihex.camel.context.StartupListener.class);

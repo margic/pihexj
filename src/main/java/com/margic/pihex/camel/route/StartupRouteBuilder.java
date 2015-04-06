@@ -26,6 +26,7 @@ public class StartupRouteBuilder extends RouteBuilder {
         from("file:{{config:com.margic.pihex.servo.conf}}?noop=true&charset=UTF-8&include=.*.conf")
                 .routeId("loadServoConfig")
                 .autoStartup(false)
+                .log(LoggingLevel.INFO, "loading config file ${in.header.CamelFileName}")
                 .convertBodyTo(String.class)
                 .unmarshal().json(JsonLibrary.Jackson, ServoConfig.class)
                 .to(getLoadServoConfigToUri())
