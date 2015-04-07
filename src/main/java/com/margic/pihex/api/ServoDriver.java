@@ -1,5 +1,7 @@
 package com.margic.pihex.api;
 
+import com.margic.pihex.event.ServoUpdateEvent;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -32,23 +34,14 @@ public interface ServoDriver {
      *
      * @param servo an implementation of the servo interface
      */
-    public void updateServo(Servo servo) throws IOException;
-
-
-    /**
-     * updates a list of servos in a single operation
-     * @param servos
-     * @throws IOException
-     */
-    public void updateServos(List<Servo> servos) throws IOException;
-
+    public void updateServo(ServoUpdateEvent servo) throws IOException;
 
     /**
      * Hook to initialize the servo driver
+     *
      * @throws IOException
      */
     public void init() throws IOException;
-
 
 
 }

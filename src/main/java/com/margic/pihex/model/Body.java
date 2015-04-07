@@ -16,25 +16,21 @@ public class Body {
     public Body() {
         this.legs = new Leg[6];
 
+        // the body inializes the legs with default servo configs if any are loaded from file after startup the config will be replaced.
         for (int i = 0; i < legs.length; i++) {
-            Servo coxa = new ServoImpl.Builder()
-                    .servoConfig(new ServoConfig.Builder()
+            Servo coxa = new ServoImpl(new ServoConfig.Builder()
                             .channel(i * 3 + 0)
                             .name("Leg " + i + " Coxa")
-                            .build())
-                    .build();
-            Servo femur = new ServoImpl.Builder()
-                    .servoConfig(new ServoConfig.Builder()
+                            .build());
+            Servo femur = new ServoImpl(new ServoConfig.Builder()
                             .channel(i * 3 + 1)
                             .name("Leg " + i + " Femur")
-                            .build())
-                    .build();
-            Servo tibia = new ServoImpl.Builder()
-                    .servoConfig(new ServoConfig.Builder()
+                            .build());
+
+            Servo tibia = new ServoImpl(new ServoConfig.Builder()
                             .channel(i * 3 + 2)
                             .name("Leg " + i + " Tibia")
-                            .build())
-                    .build();
+                            .build());
             legs[i] = new Leg("Leg_" + i, coxa, femur, tibia);
         }
     }

@@ -2,8 +2,6 @@ package com.margic.pihex;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.margic.pihex.api.Controller;
-import com.margic.pihex.api.ServoDriver;
 import com.margic.pihex.camel.route.EventBusRouteBuilder;
 import com.margic.pihex.camel.route.ServoConfigRouteBuilder;
 import com.margic.pihex.camel.route.StartupRouteBuilder;

@@ -1,12 +1,8 @@
 package com.margic.pihex.camel.context;
 
-import com.google.common.collect.Sets;
 import com.google.inject.Binding;
 import com.google.inject.Injector;
 import com.google.inject.Key;
-import com.google.inject.TypeLiteral;
-import com.google.inject.matcher.Matcher;
-import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Named;
 import org.apache.camel.impl.JndiRegistry;
 import org.apache.commons.configuration.Configuration;
@@ -17,10 +13,8 @@ import javax.inject.Inject;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import java.lang.reflect.Type;
 import java.util.Hashtable;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by paulcrofts on 3/27/15.

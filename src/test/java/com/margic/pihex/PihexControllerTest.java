@@ -54,8 +54,6 @@ public class PihexControllerTest {
         assertEquals(-80, servo.getServoConfig().getLowLimit());
         assertEquals(190, servo.getServoConfig().getRange());
 
-        assertEquals(0, servo.getAngle());
-
         assertEquals(1505, servo.getPulseLength(0));
         assertEquals(1926, servo.getPulseLength(80));
         // test past limit

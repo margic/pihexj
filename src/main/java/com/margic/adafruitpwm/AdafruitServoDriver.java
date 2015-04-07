@@ -1,14 +1,13 @@
 package com.margic.adafruitpwm;
 
-import com.margic.pihex.api.Servo;
 import com.margic.pihex.api.ServoDriver;
+import com.margic.pihex.event.ServoUpdateEvent;
 import com.margic.pihex.support.ByteUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Created by paulcrofts on 3/15/15.
@@ -32,13 +31,13 @@ public class AdafruitServoDriver implements ServoDriver {
       * registers. This avoids a lot of i2c overhead. To take advantage of
       * sequential writes the cache can cache state of previous writes to registers
      */
-    private Servo[] servoCache;
+    private int[] servoPositions; // the servo pulse position cache
 
     @Inject
     public AdafruitServoDriver(PCA9685Device device) {
         log.debug("Creating new servo driver {} for device {}", getDriverName(), device.getDeviceName());
         this.device = device;
-        this.servoCache = new Servo[18]; // will need to revisit when using more than one board
+        this.servoPositions = new int[18]; // will need to revisit when using more than one board
     }
 
     @Override
@@ -48,10 +47,11 @@ public class AdafruitServoDriver implements ServoDriver {
 
     /**
      * Init the device with the default settings in case existing settings are still in memory
+     *
      * @throws IOException
      */
     @Override
-    public void init() throws IOException{
+    public void init() throws IOException {
         log.info("Initializing the device to preferred start up state"); // essentially the power on default
 
         log.debug("Setting all registers off using ALL registers");
@@ -96,7 +96,7 @@ public class AdafruitServoDriver implements ServoDriver {
         device.writeRegister(PCA9685Device.MODE1, (byte) newMode1);
 
         log.debug("Writing prescale register with: {}", Integer.toHexString(prescale));
-        device.writeRegister(PCA9685Device.PRESCALE, (byte)prescale);
+        device.writeRegister(PCA9685Device.PRESCALE, (byte) prescale);
 
         newMode1 = oldMode1 & ~PCA9685Device.MODE1_SLEEP;
         log.debug("Writing the old value back to mode1 register with sleep off to start osc again: {}", Integer.toHexString(newMode1));
@@ -108,16 +108,15 @@ public class AdafruitServoDriver implements ServoDriver {
         device.writeRegister(PCA9685Device.MODE1, (byte) newMode1);
     }
 
-    public int getPulseFrequency(){
-        if(frequency == 0){
+    public int getPulseFrequency() {
+        if (frequency == 0) {
             return DEFAULT_PWM_FREQUENCY;
         }
         return frequency;
     }
 
 
-
-    public int getPreScale(int frequency) throws IOException{
+    public int getPreScale(int frequency) throws IOException {
         log.debug("Get prescale value for frequency {}", frequency);
         double correctedFrequency = frequency * 0.9;  // Correct for overshoot in the frequency setting (see issue #11).
         double prescaleval = CLOCK_FREQUENCY;
@@ -127,39 +126,31 @@ public class AdafruitServoDriver implements ServoDriver {
         log.debug("Estimated pre-scale {}", prescaleval);
         prescaleval = Math.round(prescaleval + 0.5);
 
-        if(prescaleval > 254){
+        if (prescaleval > 254) {
             throw new IOException("Specified frequency " + frequency + " results in prescale value " + prescaleval + " that exceed limit 254");
         }
-        int prescale = (int)prescaleval;
+        int prescale = (int) prescaleval;
         log.debug("Final pre-scale {}", prescale);
         return prescale;
     }
 
     @Override
-    public void updateServos(List<Servo> servos) throws IOException {
-        //todo update implementation with version that using sequential writes to PCA9685
-        for(Servo servo: servos){
-            updateServo(servo);
-        }
-    }
-
-    @Override
-    public void updateServo(Servo servo) throws IOException {
-        if(servo.getServoConfig().getChannel() > 15){
+    public void updateServo(ServoUpdateEvent servoUpdate) throws IOException {
+        if (servoUpdate.getServo().getServoConfig().getChannel() > 15) {
             log.warn("Haven't implemented channels > 15");
             return;
         }
         // update cache first
-        if(isMoved(servo)) {
+        if (isMoved(servoUpdate)) {
             // only send update to servo if its position has actually moved.
-            cacheServo(servo);
-            int servoChannel = servo.getServoConfig().getChannel();
-            int pulseLength = servo.getPulseLength(servo.getAngle());
+            cacheServo(servoUpdate);
+            int servoChannel = servoUpdate.getServo().getServoConfig().getChannel();
+            int pulseLength = servoUpdate.getServo().getPulseLength(servoUpdate.getAngle());
 
             // calc num counts for ms
             long count = Math.round(pulseLength * RESOLUTION / ((double) 1 / (double) getPulseFrequency()) / (double) 1000000);
 
-            log.debug("Updating servo position: {}, count: {}", servo.toString(), count);
+            log.debug("Updating servo position: {}, count: {}", servoUpdate.toString(), count);
 
             byte[] offBytes = ByteUtils.get2ByteInt((int) count);
             device.writeRegister(getRegisterForChannel(servoChannel, Register.ON_LOW), (byte) 0x00);
@@ -169,29 +160,25 @@ public class AdafruitServoDriver implements ServoDriver {
         }
     }
 
-    private boolean isMoved(Servo servo){
-        Servo cached = servoCache[servo.getServoConfig().getChannel()];
-        if(cached != null){
-            return cached.getAngle() != servo.getAngle();
-        }else{
-            return true;
-        }
+    private boolean isMoved(ServoUpdateEvent servoUpdate) {
+        int cachedPosition = servoPositions[servoUpdate.getServo().getServoConfig().getChannel()];
+        return cachedPosition != servoUpdate.getServo().getPulseLength(servoUpdate.getAngle());
     }
 
-    private void cacheServo(Servo servo){
-        int servoChannel = servo.getServoConfig().getChannel();
-        servoCache[servoChannel] = servo;
+    private void cacheServo(ServoUpdateEvent servoUpdate) {
+        int servoChannel = servoUpdate.getServo().getServoConfig().getChannel();
+        servoPositions[servoChannel] = servoUpdate.getServo().getPulseLength(servoUpdate.getAngle());
     }
 
     /**
      * Returns one of the 4 channel0 registers addresses based on servo channel
+     *
      * @param channel
      * @param register
-
      * @return
      */
-    private int getRegisterForChannel(int channel, Register register){
-        int registerAddress =  (4 * channel) + (register.value + PCA9685Device.LED0_ON_LOW); // LED0_ON_HIGH is first of sequence of registers;
+    private int getRegisterForChannel(int channel, Register register) {
+        int registerAddress = (4 * channel) + (register.value + PCA9685Device.LED0_ON_LOW); // LED0_ON_HIGH is first of sequence of registers;
         return registerAddress;
     }
 
@@ -203,18 +190,19 @@ public class AdafruitServoDriver implements ServoDriver {
         }
     }
 
-    private enum Register{
+    private enum Register {
         ON_LOW(0),
         ON_HIGH(1),
         OFF_LOW(2),
         OFF_HIGH(3);
 
         private final int value;
-        Register(int value){
+
+        Register(int value) {
             this.value = value;
         }
 
-        int value(){
+        int value() {
             return value;
         }
 

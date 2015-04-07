@@ -59,9 +59,6 @@ public class Leg {
     public String toString() {
         return new ToStringBuilder(this)
                 .append("Name", name)
-                .append("Coxa angle", coxa.getAngle())
-                .append("Femur angle", femur.getAngle())
-                .append("Tibia angle", tibia.getAngle())
                 .toString();
     }
 }

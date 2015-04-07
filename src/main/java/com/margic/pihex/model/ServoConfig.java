@@ -1,6 +1,5 @@
 package com.margic.pihex.model;
 
-import com.margic.pihex.api.Servo;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -25,9 +24,18 @@ public class ServoConfig {
     // range 180 -90 = 1000 90 = 2000 0 = 1500 0-90 = 500
     private int range;
     private int center;
-    private int lowLimit = Integer.MIN_VALUE; // can't initilize to 0, 0 is a valid limit
-    private int highLimit = Integer.MAX_VALUE; // can't initilize to 0, 0 is a valid limit
+    private int startAngle;
+    private int lowLimit = Integer.MIN_VALUE; // can't initialize to 0, 0 is a valid limit
+    private int highLimit = Integer.MAX_VALUE; // can't initialize to 0, 0 is a valid limit
     private String name;
+
+    public int getStartAngle() {
+        return startAngle;
+    }
+
+    public void setStartAngle(int startAngle) {
+        this.startAngle = startAngle;
+    }
 
     public String getName() {
         return name;
@@ -46,9 +54,9 @@ public class ServoConfig {
     }
 
     public int getRange() {
-        if(range == 0){
+        if (range == 0) {
             return DEFAULT_RANGE;
-        }else {
+        } else {
             return range;
         }
     }
@@ -66,7 +74,7 @@ public class ServoConfig {
     }
 
     public int getLowLimit() {
-        if(lowLimit == Integer.MIN_VALUE){
+        if (lowLimit == Integer.MIN_VALUE) {
             // return default
             return 0 - (getRange() / 2);
         }
@@ -78,7 +86,7 @@ public class ServoConfig {
     }
 
     public int getHighLimit() {
-        if(highLimit == Integer.MAX_VALUE){
+        if (highLimit == Integer.MAX_VALUE) {
             // return default
             return 0 + (getRange() / 2);
         }
@@ -96,6 +104,7 @@ public class ServoConfig {
                 .append("channel", channel)
                 .append("range", range)
                 .append("center", center)
+                .append("startAngle", startAngle)
                 .append("lowlimit", lowLimit)
                 .append("highLimit", highLimit)
                 .build();
@@ -109,27 +118,32 @@ public class ServoConfig {
             return this;
         }
 
-        public Builder name(String name){
+        public Builder name(String name) {
             newConfig.name = name;
             return this;
         }
 
-        public Builder range(int range){
+        public Builder range(int range) {
             newConfig.range = range;
             return this;
         }
 
-        public Builder center(int center){
+        public Builder center(int center) {
             newConfig.center = center;
             return this;
         }
 
-        public Builder lowLimit(int lowLimit){
+        public Builder startAngle(int angle){
+            newConfig.startAngle = angle;
+            return this;
+        }
+
+        public Builder lowLimit(int lowLimit) {
             newConfig.lowLimit = lowLimit;
             return this;
         }
 
-        public Builder highLimit(int highLimit){
+        public Builder highLimit(int highLimit) {
             newConfig.highLimit = highLimit;
             return this;
         }
@@ -149,8 +163,12 @@ public class ServoConfig {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) { return false; }
-        if (obj == this) { return true; }
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
         if (obj.getClass() != getClass()) {
             return false;
         }
@@ -159,6 +177,7 @@ public class ServoConfig {
                 .append(channel, rhs.channel)
                 .append(name, rhs.name)
                 .append(center, rhs.center)
+                .append(startAngle, rhs.startAngle)
                 .append(lowLimit, rhs.lowLimit)
                 .append(highLimit, rhs.highLimit)
                 .isEquals();

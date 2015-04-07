@@ -1,8 +1,9 @@
 package com.margic.pihex.camel.route;
 
+import com.margic.pihex.api.Servo;
+import com.margic.pihex.event.ServoUpdateEvent;
 import com.margic.pihex.model.ServoConfig;
 import org.apache.camel.Exchange;
-import org.apache.camel.ExchangePattern;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
@@ -18,7 +19,7 @@ public class StartupRouteBuilder extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        from("direct-vm:handleStartupEvent")
+        from("direct:handleStartupEvent")
                 .routeId("handleStartupEventRoute")
                 .log(LoggingLevel.INFO, "Starting loadServoConfigRoute")
                 .to("controlbus:route?routeId=loadServoConfig&action=start");
@@ -27,10 +28,18 @@ public class StartupRouteBuilder extends RouteBuilder {
                 .routeId("loadServoConfig")
                 .autoStartup(false)
                 .log(LoggingLevel.INFO, "loading config file ${in.header.CamelFileName}")
-                .convertBodyTo(String.class)
                 .unmarshal().json(JsonLibrary.Jackson, ServoConfig.class)
+                .setHeader("startAngle").ognl("request.body.startAngle")
                 .to(getLoadServoConfigToUri())
-                .to("bean:controller?method=handleUpdateServoEvent")
+                .process(new Processor() {
+                    @Override
+                    public void process(Exchange exchange) throws Exception {
+                        // creating a new servo update even to set the initial position of the servo to the start position
+                        Servo servo = exchange.getIn().getBody(Servo.class);
+                        exchange.getIn().setBody(new ServoUpdateEvent(servo, exchange.getIn().getHeader("startAngle", int.class)));
+                    }
+                })
+                .to("guava-eventbus:eventBus")
                 .choice()
                     .when(exchangeProperty("CamelBatchComplete").isEqualTo(true))
                     .log(LoggingLevel.INFO, "Loaded all servo conf files stopping loader")
@@ -58,7 +67,6 @@ public class StartupRouteBuilder extends RouteBuilder {
 
     class StopProcessor implements Processor{
         Thread stop;
-
         @Override
         public void process(final Exchange exchange) throws Exception {
             // stop this route using a thread that will stop
@@ -69,14 +77,10 @@ public class StartupRouteBuilder extends RouteBuilder {
                     public void run() {
                         try {
                             exchange.getContext().stopRoute("loadServoConfig");
-                        } catch (Exception e) {
-                            // ignore
-                        }
+                        } catch (Exception e) {}
                     }
                 };
             }
-
-            // start the thread that stops this route
             stop.start();
         }
     }

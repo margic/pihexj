@@ -1,6 +1,5 @@
 package com.margic.pihex;
 
-import com.margic.pihex.api.Servo;
 import com.margic.pihex.model.ServoConfig;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
@@ -23,9 +22,10 @@ public class ServoImpl implements com.margic.pihex.api.Servo {
     private static final Logger log = LoggerFactory.getLogger(ServoImpl.class);
 
     private ServoConfig servoConfig;
-    private int angle;
+    //private int angle;
 
-    private ServoImpl() {
+    public ServoImpl(ServoConfig config) {
+        this.servoConfig = config;
     }
 
     @Override
@@ -38,23 +38,23 @@ public class ServoImpl implements com.margic.pihex.api.Servo {
         this.servoConfig = config;
     }
 
-    @Override
-    public int getAngle() {
-        return angle;
-    }
+//    @Override
+//    public int getAngle() {
+//        return angle;
+//    }
 
-    /**
-     * In this implementation it is possible to set an angle that exceeds both the limits
-     * and the range. Rather than throwing exceptions this will be allowed but the get
-     * pulseLength method will return a min/max value allowed by range and limits if this
-     * is the case.
-     *
-     * @param angle
-     */
-    @Override
-    public void setAngle(int angle) {
-        this.angle = angle;
-    }
+//    /**
+//     * In this implementation it is possible to set an angle that exceeds both the limits
+//     * and the range. Rather than throwing exceptions this will be allowed but the get
+//     * pulseLength method will return a min/max value allowed by range and limits if this
+//     * is the case.
+//     *
+//     * @param angle
+//     */
+//    @Override
+//    public void setAngle(int angle) {
+//        this.angle = angle;
+//    }
 
     /**
      * Returns the pulseLength for a give angle for this servo with it's limits
@@ -99,27 +99,21 @@ public class ServoImpl implements com.margic.pihex.api.Servo {
     @Override
     public String toString() {
         return new ToStringBuilder(this).
-                append("angle", angle).
                 append("servoConfig", servoConfig.toString()).
                 toString();
     }
 
-    public static class Builder {
-        private ServoImpl newServo = new ServoImpl();
-
-        public Builder servoConfig(ServoConfig servoConfig) {
-            newServo.servoConfig = servoConfig;
-            return this;
-        }
-
-        public Builder angle(int angle) {
-            newServo.angle = angle;
-            return this;
-        }
-
-        public Servo build() {
-            return newServo;
-        }
-    }
+//    public static class Builder {
+//        private ServoImpl newServo = new ServoImpl();
+//
+//        public Builder servoConfig(ServoConfig servoConfig) {
+//            newServo.servoConfig = servoConfig;
+//            return this;
+//        }
+//
+//        public Servo build() {
+//            return newServo;
+//        }
+//    }
 
 }

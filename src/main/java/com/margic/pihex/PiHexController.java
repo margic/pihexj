@@ -4,8 +4,8 @@ import com.margic.pihex.api.Controller;
 import com.margic.pihex.api.Servo;
 import com.margic.pihex.api.ServoDriver;
 import com.margic.pihex.event.ControlEvent;
+import com.margic.pihex.event.ServoUpdateEvent;
 import com.margic.pihex.model.Body;
-import com.margic.pihex.model.Leg;
 import com.margic.pihex.model.ServoConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +37,7 @@ public class PiHexController implements Controller {
     }
 
     @Override
-    public Servo getServo(int channel){
+    public Servo getServo(int channel) {
         return body.getServo(channel);
     }
 
@@ -56,14 +56,15 @@ public class PiHexController implements Controller {
      * and handle dequeuing of the events one by one. The driver cannot process
      * more than one event at the same time as the interface to the device is a
      * serial device.
-     * @param servo
+     *
+     * @param servoUpdate
      */
     @Override
-    public void handleUpdateServoEvent(Servo servo) {
+    public void handleUpdateServoEvent(ServoUpdateEvent servoUpdate) {
         try {
-            driver.updateServo(servo);
-        }catch (IOException ioe){
-            log.error("Failed to update servo {}", servo, ioe);
+            driver.updateServo(servoUpdate);
+        } catch (IOException ioe) {
+            log.error("Failed to update servo {}", servoUpdate, ioe);
         }
     }
 }

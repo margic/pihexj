@@ -2,6 +2,7 @@ package com.margic.adafruitpwm;
 
 import com.margic.pihex.ServoImpl;
 import com.margic.pihex.api.Servo;
+import com.margic.pihex.event.ServoUpdateEvent;
 import com.margic.pihex.model.ServoConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,13 +66,11 @@ public class AdafruitServoDriverTest {
 
     @Test
     public void testUpdateServo() throws IOException{
-        Servo servo = new ServoImpl.Builder()
-                .servoConfig(new ServoConfig.Builder()
+        Servo servo = new ServoImpl(new ServoConfig.Builder()
                         .center(0)
-                        .build())
-                .angle(0)
-                .build();
-        driver.updateServo(servo);
+                        .build());
+
+        driver.updateServo(new ServoUpdateEvent(servo, 0));
         mockDevice.dumpRegisters();
 
         // assert led0 set correct
@@ -81,14 +80,13 @@ public class AdafruitServoDriverTest {
         assertEquals(0x01, mockDevice.readRegister(PCA9685Device.LED0_OFF_HIGH));
 
         servo.getServoConfig().setChannel(2);
-        servo.setAngle(90);
-        driver.updateServo(servo);
+
+        driver.updateServo(new ServoUpdateEvent(servo, 90));
 
         // assert led2 set correct
         assertEquals(0x00, mockDevice.readRegister(PCA9685Device.LED2_ON_LOW));
         assertEquals(0x00, mockDevice.readRegister(PCA9685Device.LED2_ON_HIGH));
         assertEquals(0x9A, mockDevice.readRegister(PCA9685Device.LED2_OFF_LOW));
         assertEquals(0x01, mockDevice.readRegister(PCA9685Device.LED2_OFF_HIGH));
-
     }
 }

@@ -46,7 +46,7 @@ public class PihexModule extends AbstractModule {
      */
     @Override
     protected void configure() {
-        bind(EventBus.class).annotatedWith(Names.named("eventBus")).toInstance(new AsyncEventBus(Executors.newCachedThreadPool()));
+        bind(EventBus.class).annotatedWith(Names.named("eventBus")).toInstance(new AsyncEventBus(Executors.newSingleThreadExecutor()));
         bind(Controller.class).annotatedWith(Names.named("controller")).to(PiHexController.class).in(Singleton.class);
         bind(Body.class).annotatedWith((Names.named("body"))).to(Body.class).in(Singleton.class);
         bind(StartupListener.class).to(com.margic.pihex.camel.context.StartupListener.class);

@@ -6,7 +6,6 @@ import com.margic.pihex.camel.route.EventBusRouteBuilder;
 import com.margic.pihex.camel.route.ServoConfigRouteBuilder;
 import com.margic.pihex.model.ServoConfig;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.AvailablePortFinder;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.StringEntity;

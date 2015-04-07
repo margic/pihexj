@@ -1,9 +1,9 @@
 package com.margic.pihex.camel.route;
 
 import com.google.common.eventbus.Subscribe;
-import com.margic.pihex.api.Servo;
 import com.margic.pihex.event.ControlEvent;
 import com.margic.pihex.event.SensorInterruptEvent;
+import com.margic.pihex.event.ServoUpdateEvent;
 import com.margic.pihex.event.StartupEvent;
 
 /**
@@ -22,7 +22,7 @@ public interface EventBusEvents {
      * @param servoUpdateEvent
      */
     @Subscribe
-    public void servoUpdateEvent(Servo servoUpdateEvent);
+    public void servoUpdateEvent(ServoUpdateEvent servoUpdateEvent);
 
     /**
      * An event that should cause the robot to move

@@ -4,7 +4,7 @@ import com.margic.pihex.api.Servo;
 import com.margic.pihex.model.Body;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Created by paulcrofts on 4/2/15.

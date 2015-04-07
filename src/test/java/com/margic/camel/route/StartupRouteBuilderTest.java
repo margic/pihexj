@@ -28,7 +28,9 @@ public class StartupRouteBuilderTest extends CustomCamelContextTestSupport {
         StartupRouteBuilder startupRoute = new StartupRouteBuilder();
         startupRoute.setLoadServoConfigToUri("mock:startup");
         routes[0] = startupRoute;
-        routes[1] = new EventBusRouteBuilder();
+        EventBusRouteBuilder busRouteBuilder = new EventBusRouteBuilder();
+        busRouteBuilder.setUpdateServoToUri("mock:updateServo");
+        routes[1] = busRouteBuilder;
         return routes;
     }
 
@@ -36,28 +38,29 @@ public class StartupRouteBuilderTest extends CustomCamelContextTestSupport {
     public void startupTest() throws Exception{
 
         MockEndpoint mock = getMockEndpoint("mock:startup");
+        MockEndpoint mockUpdateServo = getMockEndpoint("mock:updateServo");
 
         mock.whenAnyExchangeReceived(new Processor() {
             @Override
             public void process(Exchange exchange) throws Exception {
-                exchange.getOut().setBody(new ServoImpl.Builder()
-                        .servoConfig(new ServoConfig.Builder().center(0).channel(0).name("TestServo").build())
-                        .build());
+                exchange.getIn().setBody(new ServoImpl(new ServoConfig.Builder().center(0).channel(0).name("TestServo").build()));
             }
         });
 
-
         mock.expectedMessageCount(2);
 
-        String servo0json = "{\"channel\":0,\"range\":180,\"center\":5,\"lowLimit\":-90,\"highLimit\":90,\"name\":\"Leg 0 Coxa\"}";
+        String servo0json = "{\"channel\":0,\"range\":180,\"center\":5,\"startAngle\":10,\"lowLimit\":-90,\"highLimit\":90,\"name\":\"Leg 0 Coxa\"}";
 
-        String servo2json = "{\"channel\":2,\"range\":120,\"center\":-5,\"lowLimit\":-60,\"highLimit\":60,\"name\":\"Leg 0 Tibia\"}";
+        String servo2json = "{\"channel\":2,\"range\":120,\"center\":-5,\"startAngle\":10,\"lowLimit\":-60,\"highLimit\":60,\"name\":\"Leg 0 Tibia\"}";
 
         ObjectMapper mapper = new ObjectMapper();
         ServoConfig servo0 = mapper.readValue(servo0json, ServoConfig.class);
         ServoConfig servo2 = mapper.readValue(servo2json, ServoConfig.class);
 
         mock.expectedBodiesReceived(servo0, servo2);
+
+        // route should have cause the servo update events to be trigger test the mock for them
+        mockUpdateServo.expectedMessageCount(2);
 
         // get the event bus and trigger start event
         EventBus eventBus = context().getRegistry().lookupByNameAndType("eventBus", EventBus.class);

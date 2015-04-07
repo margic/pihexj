@@ -1,6 +1,7 @@
 package com.margic.pihex.api;
 
 import com.margic.pihex.event.ControlEvent;
+import com.margic.pihex.event.ServoUpdateEvent;
 import com.margic.pihex.model.ServoConfig;
 
 /**
@@ -30,8 +31,8 @@ public interface Controller {
 
     /**
      * this method updates a single servos physical position
-     * @param servo
+     * @param servoUpdate
      */
-    void handleUpdateServoEvent(Servo servo);
+    void handleUpdateServoEvent(ServoUpdateEvent servoUpdate);
 
 }

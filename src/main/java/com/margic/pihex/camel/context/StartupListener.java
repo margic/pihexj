@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
  * need to be run when the context starts and the robot is ready to initialize
  */
 public class StartupListener implements org.apache.camel.StartupListener {
-
     private static final Logger log = LoggerFactory.getLogger(StartupListener.class);
 
     @Override
@@ -22,12 +21,10 @@ public class StartupListener implements org.apache.camel.StartupListener {
         if(!alreadyStarted){
             log.debug("Initial Startup Trigger Event on Event Bus");
             EventBus eventBus = context.getRegistry().lookupByNameAndType("eventBus", EventBus.class);
-
             if(eventBus == null){
                 throw new Exception("Failed to lookup eventbus in camel registry. Can't initialize properly");
             }
             eventBus.post(new StartupEvent());
         }
-
     }
 }

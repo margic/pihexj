@@ -1,8 +1,9 @@
 package com.margic.model;
 
 import com.margic.pihex.model.ServoConfig;
-import static org.junit.Assert.*;
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
  * Created by paulcrofts on 4/5/15.
