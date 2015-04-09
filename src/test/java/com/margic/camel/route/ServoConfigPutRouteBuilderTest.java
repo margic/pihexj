@@ -25,7 +25,7 @@ public class ServoConfigPutRouteBuilderTest extends CustomCamelContextTestSuppor
     @Override
     protected RouteBuilder[] createRouteBuilders() throws Exception {
         log.info(System.getProperties().toString());
-        port = AvailablePortFinder.getNextAvailable(8080);
+        port = AvailablePortFinder.getNextAvailable(8181);
         setConfigurationProperty("com.margic.pihex.api.port", Integer.toString(port));
         setConfigurationProperty("com.margic.pihex.servo.conf", "${sys:user.dir}/target/test-classes/confwritetest/conf/");
         return new RouteBuilder[]{new ServoConfigRouteBuilder(), new EventBusRouteBuilder()};
@@ -40,14 +40,13 @@ public class ServoConfigPutRouteBuilderTest extends CustomCamelContextTestSuppor
         String testJson = mapper.writeValueAsString(config);
         log.info("Testing update servo config with {}", testJson);
 
-        int responseStatus = Request.Put("http://localhost:" + port + "/servoconfig/0")
+        int responseStatus = getExecutor().execute(Request.Put("http://localhost:" + port + "/servoconfig/0")
                 .addHeader("Content-Type", "application/json")
                 .body(new StringEntity(testJson))
-                .execute()
+                .socketTimeout(0))
                 .returnResponse()
                 .getStatusLine()
                 .getStatusCode();
-
 
         log.info("Response status {}", responseStatus);
         assertEquals(204, responseStatus);

@@ -8,6 +8,8 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.spi.Registry;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.apache.commons.configuration.Configuration;
+import org.apache.http.client.fluent.Executor;
+import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +25,8 @@ public class CustomCamelContextTestSupport extends CamelTestSupport {
 
     protected Injector injector = Guice.createInjector(new PihexModule());
     protected Configuration config;
+
+    private Executor executor;
 
     @Override
     protected CamelContext createCamelContext() throws Exception {
@@ -47,4 +51,18 @@ public class CustomCamelContextTestSupport extends CamelTestSupport {
         log.info("Setting config value name: {}, current value: {}, new value: {}", name, config.getString(name), value);
         config.setProperty(name, value);
     }
+
+    /**
+     * gets an executor for the http fluent client
+     * This executor configures the client to avoid caching sockets
+     * other wise test cases where the context is replace cause errors
+     * @return
+     */
+    protected Executor getExecutor(){
+        if (executor == null){
+            executor = Executor.newInstance(HttpClients.custom().disableConnectionState().build());
+        }
+        return executor;
+    }
+
 }

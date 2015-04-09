@@ -4,6 +4,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.margic.pihex.camel.route.EventBusRouteBuilder;
 import com.margic.pihex.camel.route.ServoConfigRouteBuilder;
+import com.margic.pihex.camel.route.ServoUpdateRouteBuilder;
 import com.margic.pihex.camel.route.StartupRouteBuilder;
 import org.apache.camel.CamelContext;
 import org.slf4j.Logger;
@@ -61,5 +62,6 @@ public class PiHexDaemon {
         context.addRoutes(new EventBusRouteBuilder());
         context.addRoutes(new ServoConfigRouteBuilder());
         context.addRoutes(new StartupRouteBuilder());
+        context.addRoutes(new ServoUpdateRouteBuilder());
     }
 }

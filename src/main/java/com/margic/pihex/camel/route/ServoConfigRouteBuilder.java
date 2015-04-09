@@ -19,10 +19,10 @@ public class ServoConfigRouteBuilder extends RouteBuilder {
         restConfiguration().component("jetty").host("{{config:com.margic.pihex.api.address}}").port("{{config:com.margic.pihex.api.port}}").bindingMode(RestBindingMode.auto);
 
         rest("/servoconfig/")
-                .get("/{channel}")
+                .get("/{channel}").id("restGetServoConfig")
                 .outType(ServoConfig.class)
                 .to("direct:getServoConfig")
-                .put("/{channel}")
+                .put("/{channel}").id("restPutServoConfig")
                 .consumes("application/json")
                 .type(ServoConfig.class)
                 .to("direct:putServoConfig");
@@ -43,10 +43,12 @@ public class ServoConfigRouteBuilder extends RouteBuilder {
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("204"));
 
         from("direct:updateRunningConfig")
+                .routeId("updateRunningConfig")
                 .to("bean:controller")
                 .to("guava-eventbus:eventBus");
 
         from("direct:writeConfigToFile")
+                .id("writeConfigToFile")
                 .marshal().json(JsonLibrary.Jackson)
                 .to("file://{{config:com.margic.pihex.servo.conf}}?fileName=servo-${in.header.channel}.conf");
     }

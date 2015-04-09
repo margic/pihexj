@@ -24,9 +24,9 @@ public class ServoConfigRouteGetBuilderTest extends CustomCamelContextTestSuppor
     }
     @Test
     public void testServoConfigGet() throws Exception {
-        String content = Request.Get("http://localhost:" + port + "/servoconfig/0")
+        String content = getExecutor().execute(Request.Get("http://localhost:" + port + "/servoconfig/0")
                 .addHeader("Accept", "application/json")
-                .execute()
+                .socketTimeout(0))
                 .returnContent()
                 .asString();
         log.info(content);

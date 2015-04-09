@@ -7,6 +7,7 @@ import com.margic.pihex.event.ControlEvent;
 import com.margic.pihex.event.ServoUpdateEvent;
 import com.margic.pihex.model.Body;
 import com.margic.pihex.model.ServoConfig;
+import com.margic.pihex.model.ServoUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +48,13 @@ public class PiHexController implements Controller {
         Servo servo = body.getServo(servoConfig.getChannel());
         servo.setServoConfig(servoConfig);
         return servo;
+    }
+
+    @Override
+    public ServoUpdateEvent handlePostUpdateServo(ServoUpdate servoUpdate) {
+        Servo servoToUpdate = getServo(servoUpdate.getChannel());
+        ServoUpdateEvent updateEvent = new ServoUpdateEvent(servoToUpdate, servoUpdate.getAngle());
+        return updateEvent;
     }
 
     /**

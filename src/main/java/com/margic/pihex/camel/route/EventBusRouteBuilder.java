@@ -45,6 +45,7 @@ public class EventBusRouteBuilder extends RouteBuilder {
                 .endChoice();
 
         from("seda:updateServo")
+                .routeId("updateServo")
                 .to(getUpdateServoToUri());
     }
 }

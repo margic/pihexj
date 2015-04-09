@@ -3,6 +3,7 @@ package com.margic.pihex.api;
 import com.margic.pihex.event.ControlEvent;
 import com.margic.pihex.event.ServoUpdateEvent;
 import com.margic.pihex.model.ServoConfig;
+import com.margic.pihex.model.ServoUpdate;
 
 /**
  * Created by paulcrofts on 3/29/15.
@@ -34,5 +35,11 @@ public interface Controller {
      * @param servoUpdate
      */
     void handleUpdateServoEvent(ServoUpdateEvent servoUpdate);
+
+    /**
+     * handles a request to update a servo by creating the associate event for a given servo
+     * @param servoUpdate
+     */
+    ServoUpdateEvent handlePostUpdateServo(ServoUpdate servoUpdate);
 
 }
