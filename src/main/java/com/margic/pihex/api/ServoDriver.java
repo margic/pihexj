@@ -29,12 +29,22 @@ public interface ServoDriver {
     /**
      * sets the pulse length for a single servo
      * assumes a servo is designated to a some sort of channel identifier.
-     * Driver implementer should provid mapping for servo channel id to
+     * Driver implementer should provide mapping for servo channel id to
      * implementation
+     * Does not write to device until flush is called
+     *
+     * This allows updates to be staged to allow optimizing of writes to servos
      *
      * @param servo an implementation of the servo interface
      */
     public void updateServo(ServoUpdateEvent servo) throws IOException;
+
+    /**
+     * flushes updates to servo devices
+     * @return the number of servos updated
+     * @throws IOException
+     */
+    public int flush() throws IOException;
 
     /**
      * Hook to initialize the servo driver

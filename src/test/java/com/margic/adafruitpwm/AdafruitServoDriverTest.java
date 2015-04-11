@@ -26,7 +26,7 @@ public class AdafruitServoDriverTest {
     @Before
     public void setUpServoDriver() {
         mockDevice = new MockPCA9685Device();
-        this.driver = new AdafruitServoDriver(mockDevice);
+        this.driver = new AdafruitServoDriver(new PCA9685Device[]{mockDevice});
     }
 
     @Test
@@ -71,6 +71,8 @@ public class AdafruitServoDriverTest {
                         .build());
 
         driver.updateServo(new ServoUpdateEvent(servo, 0));
+        int count = driver.flush();
+        log.info("Updated {} servos", count);
         mockDevice.dumpRegisters();
 
         // assert led0 set correct
@@ -82,6 +84,8 @@ public class AdafruitServoDriverTest {
         servo.getServoConfig().setChannel(2);
 
         driver.updateServo(new ServoUpdateEvent(servo, 90));
+        count = driver.flush();
+        log.info("Updated {} servos", count);
 
         // assert led2 set correct
         assertEquals(0x00, mockDevice.readRegister(PCA9685Device.LED2_ON_LOW));

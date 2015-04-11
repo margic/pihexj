@@ -71,6 +71,7 @@ public class PiHexController implements Controller {
     public void handleUpdateServoEvent(ServoUpdateEvent servoUpdate) {
         try {
             driver.updateServo(servoUpdate);
+            driver.flush();
         } catch (IOException ioe) {
             log.error("Failed to update servo {}", servoUpdate, ioe);
         }

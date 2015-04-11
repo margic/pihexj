@@ -1,5 +1,6 @@
 package com.margic.adafruitpwm;
 
+import com.margic.pihex.api.Servo;
 import com.margic.pihex.api.ServoDriver;
 import com.margic.pihex.event.ServoUpdateEvent;
 import com.margic.pihex.support.ByteUtils;
@@ -8,6 +9,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * Created by paulcrofts on 3/15/15.
@@ -23,7 +27,8 @@ public class AdafruitServoDriver implements ServoDriver {
     public static final double CLOCK_FREQUENCY = 25 * 1000000;
     public static final double RESOLUTION = 4096;
 
-    private PCA9685Device device;
+
+    private PCA9685Device[] devices;
     private int frequency;
     /*
       * cache is use when writing multiple servos to cache any missing
@@ -33,11 +38,15 @@ public class AdafruitServoDriver implements ServoDriver {
      */
     private int[] servoPositions; // the servo pulse position cache
 
+    // TODO add some sort of lock on this object while reading to avoid updates while doing serial writes
+    private SortedSet<ServoUpdateEvent> eventBuffer;
+
     @Inject
-    public AdafruitServoDriver(PCA9685Device device) {
-        log.debug("Creating new servo driver {} for device {}", getDriverName(), device.getDeviceName());
-        this.device = device;
-        this.servoPositions = new int[18]; // will need to revisit when using more than one board
+    public AdafruitServoDriver(PCA9685Device[] devices) {
+        log.debug("Creating new servo driver {}", getDriverName());
+        this.devices = devices;
+        this.servoPositions = new int[devices.length * PCA9685Device.NUMBER_CHANNELS];
+        eventBuffer = new TreeSet<>();
     }
 
     @Override
@@ -53,19 +62,21 @@ public class AdafruitServoDriver implements ServoDriver {
     @Override
     public void init() throws IOException {
         log.info("Initializing the device to preferred start up state"); // essentially the power on default
+        for (PCA9685Device device : devices) {
+            log.info("Device: {}", device.getDeviceName());
+            log.debug("Setting all registers off using ALL registers ");
+            device.writeRegister(PCA9685Device.ALL_LED_ON_L, (byte) 0x00);
+            device.writeRegister(PCA9685Device.ALL_LED_ON_H, (byte) 0x00);
+            device.writeRegister(PCA9685Device.ALL_LED_OFF_L, (byte) 0x00);
+            device.writeRegister(PCA9685Device.ALL_LED_OFF_H, (byte) 0x00);
 
-        log.debug("Setting all registers off using ALL registers");
-        device.writeRegister(PCA9685Device.ALL_LED_ON_L, (byte) 0x00);
-        device.writeRegister(PCA9685Device.ALL_LED_ON_H, (byte) 0x00);
-        device.writeRegister(PCA9685Device.ALL_LED_OFF_L, (byte) 0x00);
-        device.writeRegister(PCA9685Device.ALL_LED_OFF_H, (byte) 0x00);
-
-        log.debug("Set mode 2 with only OUTDRV bit high: {}", PCA9685Device.OUTDRV);
-        device.writeRegister(PCA9685Device.MODE2, (byte) PCA9685Device.OUTDRV);
-        log.debug("Set mode 1 with only ALLCALL bit high: {}", PCA9685Device.ALLCALL); // this sets oscillator on
-        device.writeRegister(PCA9685Device.MODE1, (byte) PCA9685Device.ALLCALL);
-        // with for oscillator to settle takes 500 micro seconds, 50 ms is way more than needed
-        sleep(50);
+            log.debug("Set mode 2 with only OUTDRV bit high: {}", PCA9685Device.OUTDRV);
+            device.writeRegister(PCA9685Device.MODE2, (byte) PCA9685Device.OUTDRV);
+            log.debug("Set mode 1 with only ALLCALL bit high: {}", PCA9685Device.ALLCALL); // this sets oscillator on
+            device.writeRegister(PCA9685Device.MODE1, (byte) PCA9685Device.ALLCALL);
+            // with for oscillator to settle takes 500 micro seconds, 50 ms is way more than needed
+            sleep(50);
+        }
     }
 
     /**
@@ -83,29 +94,31 @@ public class AdafruitServoDriver implements ServoDriver {
      */
     @Override
     public void setPulseFrequency(int frequency) throws IOException {
-        log.info("Setting pwm frequency to {} hz", frequency);
-        this.frequency = frequency;
-        int prescale = getPreScale(frequency);
+        for (PCA9685Device device : devices) {
+            log.info("Device: {} - Setting pwm frequency to {} hz", getDriverName(), frequency);
+            this.frequency = frequency;
+            int prescale = getPreScale(frequency);
 
-        log.debug("Reading value of Mode 1 register");
-        int oldMode1 = device.readRegister(PCA9685Device.MODE1);
-        log.debug("Mode 1 register: {}", Integer.toHexString(oldMode1));
+            log.debug("Reading value of Mode 1 register");
+            int oldMode1 = device.readRegister(PCA9685Device.MODE1);
+            log.debug("Mode 1 register: {}", Integer.toHexString(oldMode1));
 
-        int newMode1 = (oldMode1 & 0x7F) | PCA9685Device.MODE1_SLEEP;
-        log.debug("Setting sleep bit on Mode 1 register: {}", Integer.toHexString(newMode1));
-        device.writeRegister(PCA9685Device.MODE1, (byte) newMode1);
+            int newMode1 = (oldMode1 & 0x7F) | PCA9685Device.MODE1_SLEEP;
+            log.debug("Setting sleep bit on Mode 1 register: {}", Integer.toHexString(newMode1));
+            device.writeRegister(PCA9685Device.MODE1, (byte) newMode1);
 
-        log.debug("Writing prescale register with: {}", Integer.toHexString(prescale));
-        device.writeRegister(PCA9685Device.PRESCALE, (byte) prescale);
+            log.debug("Writing prescale register with: {}", Integer.toHexString(prescale));
+            device.writeRegister(PCA9685Device.PRESCALE, (byte) prescale);
 
-        newMode1 = oldMode1 & ~PCA9685Device.MODE1_SLEEP;
-        log.debug("Writing the old value back to mode1 register with sleep off to start osc again: {}", Integer.toHexString(newMode1));
-        device.writeRegister(PCA9685Device.MODE1, (byte) (newMode1));
-        // wait for oscillator to restart
-        sleep(50);
-        newMode1 = oldMode1 | PCA9685Device.MODE1_RESTART;
-        log.debug("Setting restart bit: {}", Integer.toHexString(newMode1));
-        device.writeRegister(PCA9685Device.MODE1, (byte) newMode1);
+            newMode1 = oldMode1 & ~PCA9685Device.MODE1_SLEEP;
+            log.debug("Writing the old value back to mode1 register with sleep off to start osc again: {}", Integer.toHexString(newMode1));
+            device.writeRegister(PCA9685Device.MODE1, (byte) (newMode1));
+            // wait for oscillator to restart
+            sleep(50);
+            newMode1 = oldMode1 | PCA9685Device.MODE1_RESTART;
+            log.debug("Setting restart bit: {}", Integer.toHexString(newMode1));
+            device.writeRegister(PCA9685Device.MODE1, (byte) newMode1);
+        }
     }
 
     public int getPulseFrequency() {
@@ -134,12 +147,37 @@ public class AdafruitServoDriver implements ServoDriver {
         return prescale;
     }
 
+    /**
+     * buffer updates in event buffer
+     * not servos not updated until flush called
+     *
+     * @param servoUpdate
+     * @throws IOException
+     */
     @Override
     public void updateServo(ServoUpdateEvent servoUpdate) throws IOException {
-        if (servoUpdate.getServo().getServoConfig().getChannel() > 15) {
-            log.warn("Haven't implemented channels > 15");
-            return;
+        eventBuffer.add(servoUpdate);
+    }
+
+    @Override
+    public int flush() throws IOException {
+        int count = 0;
+        if(eventBuffer.size() < 4){
+            // better off doing single updates
+            for(ServoUpdateEvent event: eventBuffer){
+                updateSingleServo(event);
+                count ++;
+            }
+            eventBuffer.clear();
+        }else {
+            // call the update multi
+            count = updateMultipleServos();
+            eventBuffer.clear();
         }
+        return count;
+    }
+
+    private void updateSingleServo(ServoUpdateEvent servoUpdate) throws IOException {
         // update cache first
         if (isMoved(servoUpdate)) {
             // only send update to servo if its position has actually moved.
@@ -153,11 +191,27 @@ public class AdafruitServoDriver implements ServoDriver {
             log.debug("Updating servo position: {}, count: {}", servoUpdate.toString(), count);
 
             byte[] offBytes = ByteUtils.get2ByteInt((int) count);
+            PCA9685Device device = getDevice(servoChannel);
             device.writeRegister(getRegisterForChannel(servoChannel, Register.ON_LOW), (byte) 0x00);
             device.writeRegister(getRegisterForChannel(servoChannel, Register.ON_HIGH), (byte) 0x00);
             device.writeRegister(getRegisterForChannel(servoChannel, Register.OFF_LOW), offBytes[ByteUtils.LOW_BYTE]);
             device.writeRegister(getRegisterForChannel(servoChannel, Register.OFF_HIGH), offBytes[ByteUtils.HIGH_BYTE]);
         }
+    }
+
+    private int updateMultipleServos() {
+        return 0;
+    }
+
+    /**
+     * returns the device that handles this channel
+     *
+     * @param channel
+     * @return
+     */
+    private PCA9685Device getDevice(int channel) {
+        int devNum = channel / PCA9685Device.NUMBER_CHANNELS;
+        return devices[devNum];
     }
 
     private boolean isMoved(ServoUpdateEvent servoUpdate) {

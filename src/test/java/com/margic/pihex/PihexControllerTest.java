@@ -2,6 +2,7 @@ package com.margic.pihex;
 
 import com.margic.adafruitpwm.AdafruitServoDriver;
 import com.margic.adafruitpwm.MockPCA9685Device;
+import com.margic.adafruitpwm.PCA9685Device;
 import com.margic.pihex.api.Controller;
 import com.margic.pihex.api.Servo;
 import com.margic.pihex.model.Body;
@@ -21,7 +22,7 @@ public class PihexControllerTest {
 
     @Before
     public void before(){
-        controller = new PiHexController(new Body(), new AdafruitServoDriver(new MockPCA9685Device()));
+        controller = new PiHexController(new Body(), new AdafruitServoDriver(new PCA9685Device[]{new MockPCA9685Device()}));
     }
 
     @Test

@@ -1,13 +1,15 @@
 package com.margic.pihex.event;
 
 import com.margic.pihex.api.Servo;
+import org.apache.commons.lang.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * Created by paulcrofts on 4/1/15.
+ * Update can be compared by servo channel
  */
-public class ServoUpdateEvent {
+public class ServoUpdateEvent implements Comparable{
 
     private Servo servo;
     private int angle;
@@ -54,8 +56,15 @@ public class ServoUpdateEvent {
         }
         ServoUpdateEvent rhs = (ServoUpdateEvent) obj;
         return new EqualsBuilder()
-                .append(servo, rhs.servo)
-                .append(angle, rhs.angle)
+                .append(servo.getServoConfig().getChannel(), rhs.servo.getServoConfig().getChannel())
                 .isEquals();
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        ServoUpdateEvent myClass = (ServoUpdateEvent) o;
+        return new CompareToBuilder()
+                .append(this.servo.getServoConfig().getChannel(), myClass.servo.getServoConfig().getChannel())
+                .toComparison();
     }
 }
