@@ -25,7 +25,7 @@ public class AdafruitServoDriverTest {
 
     @Before
     public void setUpServoDriver() {
-        mockDevice = new MockPCA9685Device();
+        mockDevice = new MockPCA9685Device("Mock Device");
         this.driver = new AdafruitServoDriver(new PCA9685Device[]{mockDevice});
     }
 
@@ -60,7 +60,7 @@ public class AdafruitServoDriverTest {
         driver.init();
         mockDevice.dumpRegisters();
         mockDevice.dumpByteStream();
-        assertEquals(0x01, mockDevice.readRegister(PCA9685Device.MODE1));
+        assertEquals(0x11, mockDevice.readRegister(PCA9685Device.MODE1));
         assertEquals(0x04, mockDevice.readRegister(PCA9685Device.MODE2));
     }
 
@@ -71,8 +71,7 @@ public class AdafruitServoDriverTest {
                         .build());
 
         driver.updateServo(new ServoUpdateEvent(servo, 0));
-        int count = driver.flush();
-        log.info("Updated {} servos", count);
+        driver.flush();
         mockDevice.dumpRegisters();
 
         // assert led0 set correct
@@ -84,13 +83,25 @@ public class AdafruitServoDriverTest {
         servo.getServoConfig().setChannel(2);
 
         driver.updateServo(new ServoUpdateEvent(servo, 90));
-        count = driver.flush();
-        log.info("Updated {} servos", count);
+        driver.flush();
 
         // assert led2 set correct
         assertEquals(0x00, mockDevice.readRegister(PCA9685Device.LED2_ON_LOW));
         assertEquals(0x00, mockDevice.readRegister(PCA9685Device.LED2_ON_HIGH));
         assertEquals(0x9A, mockDevice.readRegister(PCA9685Device.LED2_OFF_LOW));
         assertEquals(0x01, mockDevice.readRegister(PCA9685Device.LED2_OFF_HIGH));
+    }
+
+    @Test
+    public void testGetDeviceOffset() throws Exception{
+        assertEquals(0, driver.getDeviceOffset(0));
+        assertEquals(0, driver.getDeviceOffset(1));
+        assertEquals(0, driver.getDeviceOffset(14));
+        assertEquals(0, driver.getDeviceOffset(15));
+        assertEquals(16, driver.getDeviceOffset(16));
+        assertEquals(16, driver.getDeviceOffset(17));
+        assertEquals(16, driver.getDeviceOffset(30));
+        assertEquals(16, driver.getDeviceOffset(31));
+        assertEquals(32, driver.getDeviceOffset(32));
     }
 }

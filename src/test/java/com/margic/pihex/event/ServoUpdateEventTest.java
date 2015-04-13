@@ -34,7 +34,7 @@ public class ServoUpdateEventTest {
 
         int count = 1;
         for(ServoUpdateEvent event: set){
-            assertEquals(count, event.getServo().getServoConfig().getChannel());
+            assertEquals(count, event.getChannel());
             count++;
         }
         

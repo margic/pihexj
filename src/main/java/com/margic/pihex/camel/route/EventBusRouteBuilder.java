@@ -2,6 +2,7 @@ package com.margic.pihex.camel.route;
 
 import com.margic.pihex.api.Servo;
 import com.margic.pihex.event.ControlEvent;
+import com.margic.pihex.event.FlushServoUpdateEvent;
 import com.margic.pihex.event.ServoUpdateEvent;
 import com.margic.pihex.event.StartupEvent;
 import org.apache.camel.LoggingLevel;
@@ -36,12 +37,14 @@ public class EventBusRouteBuilder extends RouteBuilder {
         from("guava-eventbus:{{config:com.margic.pihex.camel.eventBusName}}?listenerInterface=com.margic.pihex.camel.route.EventBusEvents")
                 .routeId("eventBusRoute")
                 .choice()
+                    .when(body().isInstanceOf(ServoUpdateEvent.class))
+                        .to("seda:updateServo")
+                    .when(body().isInstanceOf(FlushServoUpdateEvent.class))
+                        .to("bean:controller")
                     .when(body().isInstanceOf(ControlEvent.class))
                         .to("bean:controller")
                     .when(body().isInstanceOf(StartupEvent.class))
                         .to("direct:handleStartupEvent")
-                    .when(body().isInstanceOf(ServoUpdateEvent.class))
-                        .to("seda:updateServo")
                 .endChoice();
 
         from("seda:updateServo")

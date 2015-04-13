@@ -37,8 +37,15 @@ public class ServoUpdateRouteBuilder extends RouteBuilder {
                 .post("/").id("restPostServoUpdate")
                 .consumes("application/json")
                 .type(ServoUpdate.class)
-                .to("direct:postServoUpdate");
+                .to("direct:postServoUpdate")
+                .get("/flush").id("flusheServoUpdates")
+                .consumes("application/json")
+                .to("direct:getFlushServoUpdates");
 
+        from("direct:getFlushServoUpdates")
+                .routeId("getFlushServoUpdates")
+                .setBody(simple("ref:flushEvent"))
+                .to("bean:controller");
 
         from("direct:postServoUpdate")
                 .routeId("postServoUpdate")

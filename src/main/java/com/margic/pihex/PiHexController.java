@@ -4,6 +4,7 @@ import com.margic.pihex.api.Controller;
 import com.margic.pihex.api.Servo;
 import com.margic.pihex.api.ServoDriver;
 import com.margic.pihex.event.ControlEvent;
+import com.margic.pihex.event.FlushServoUpdateEvent;
 import com.margic.pihex.event.ServoUpdateEvent;
 import com.margic.pihex.model.Body;
 import com.margic.pihex.model.ServoConfig;
@@ -71,9 +72,19 @@ public class PiHexController implements Controller {
     public void handleUpdateServoEvent(ServoUpdateEvent servoUpdate) {
         try {
             driver.updateServo(servoUpdate);
-            driver.flush();
         } catch (IOException ioe) {
             log.error("Failed to update servo {}", servoUpdate, ioe);
         }
+    }
+
+    @Override
+    public int flushServoUpdates(FlushServoUpdateEvent servoUpdateEvent) {
+        int updateCount = 0;
+        try {
+            updateCount += driver.flush();
+        } catch (IOException ioe) {
+            log.error("Failed to flush servo updates");
+        }
+        return updateCount;
     }
 }

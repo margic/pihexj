@@ -68,7 +68,7 @@ public class ServoImplTest {
     private void assertPulse(ServoUpdateEvent servoUpdate, int expectedPulseLength){
 
         log.info("Testing pulse for servo: {}", servoUpdate);
-        int pulse = servoUpdate.getServo().getPulseLength(servoUpdate.getAngle());
+        int pulse = servoUpdate.getPulseLength();
         log.info("Servo pulse length: {}", pulse);
         assertEquals(expectedPulseLength, pulse);
     }

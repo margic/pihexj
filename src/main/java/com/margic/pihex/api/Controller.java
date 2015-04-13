@@ -1,6 +1,7 @@
 package com.margic.pihex.api;
 
 import com.margic.pihex.event.ControlEvent;
+import com.margic.pihex.event.FlushServoUpdateEvent;
 import com.margic.pihex.event.ServoUpdateEvent;
 import com.margic.pihex.model.ServoConfig;
 import com.margic.pihex.model.ServoUpdate;
@@ -42,4 +43,10 @@ public interface Controller {
      */
     ServoUpdateEvent handlePostUpdateServo(ServoUpdate servoUpdate);
 
+
+    /**
+     * handles a servo update event to flush all the updates that are queueed
+     * @param servoUpdateEvent
+     */
+    int flushServoUpdates(FlushServoUpdateEvent servoUpdateEvent);
 }

@@ -26,7 +26,7 @@ public interface PCA9685Device {
     static final int MODE2 = 0x01; // mode register 2
     static final int SUBADR1 = 0x02; // i2c bus subaddress 1
     static final int SUBADR2 = 0x03; // i2c bus subaddress 2
-    static final int SUBADR13 = 0x04; // i2c bus subaddress 3
+    static final int SUBADR3 = 0x04; // i2c bus subaddress 3
     static final int ALLCALLADR = 0x05; // LED All call i2c bus address
 
     // begin LED registers.
@@ -170,10 +170,10 @@ public interface PCA9685Device {
      * Write multiple values to the device in one stream starting at register at startAddress
      * and incrementing the register address for each value
      *
-     * @param startAddress start register address
+     * @param address start register address
      * @param values       array of bytes to write to registers starting with start address
      */
-    void writeRegisters(int startAddress, byte[] values) throws IOException;
+    void writeRegisters(int address, byte[] values) throws IOException;
 
     /**
      * Read the value from the specified address
@@ -184,14 +184,14 @@ public interface PCA9685Device {
     int readRegister(int address) throws IOException;
 
     /**
-     * Read the values from multiple addresses starting at the start address
+     * Read the values from multiple addresses where the first byte of the buffer specifies the start register
      * into the buffer provided
      * at the offset specified
      * and size number of bytes
      * in PCA9685 this requires auto incrementing registers
      *
-     * @param startAddress the start register address
+     * @param address the address of device
      * @return number of bytes read
      */
-    int readRegisters(int startAddress, byte[] buffer, int offset, int size) throws IOException;
+    int readRegisters(int address, byte[] buffer, int offset, int size) throws IOException;
 }

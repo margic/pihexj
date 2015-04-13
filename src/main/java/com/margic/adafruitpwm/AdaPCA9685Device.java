@@ -16,17 +16,17 @@ public class AdaPCA9685Device implements PCA9685Device {
 
     private static final Logger log = LoggerFactory.getLogger(AdaPCA9685Device.class);
 
-    private static final String DEVICE_NAME = "Adafruit PCA9685 Device";
-
     private I2CDevice i2cDevice;
+    private String name;
 
-    public AdaPCA9685Device(I2CDevice i2cDevice) {
+    public AdaPCA9685Device(I2CDevice i2cDevice, String name) {
+        this.name = name;
         this.i2cDevice = i2cDevice;
     }
 
     @Override
     public String getDeviceName() {
-        return DEVICE_NAME;
+        return name;
     }
 
     @Override
@@ -36,9 +36,8 @@ public class AdaPCA9685Device implements PCA9685Device {
     }
 
     @Override
-    public void writeRegisters(int startAddress, byte[] values) throws IOException {
-        log.error("NOT YET IMPLEMENTED - currently focusing on single servo operations");
-        i2cDevice.write(startAddress, values, 0, values.length);
+    public void writeRegisters(int address, byte[] values) throws IOException {
+        i2cDevice.write(address, values, 0, values.length);
     }
 
     @Override
@@ -49,8 +48,7 @@ public class AdaPCA9685Device implements PCA9685Device {
     }
 
     @Override
-    public int readRegisters(int startAddress, byte[] buffer, int offset, int size) throws IOException {
-        log.error("NOT YET IMPLEMENTED");
-        return i2cDevice.read(startAddress, buffer, 0, buffer.length);
+    public int readRegisters(int address, byte[] buffer, int offset, int size) throws IOException {
+        return i2cDevice.read(address, buffer, 0, buffer.length);
     }
 }

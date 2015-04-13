@@ -1,6 +1,5 @@
 package com.margic.adafruitpwm;
 
-import com.margic.pihex.api.Servo;
 import com.margic.pihex.api.ServoDriver;
 import com.margic.pihex.event.ServoUpdateEvent;
 import com.margic.pihex.support.ByteUtils;
@@ -9,7 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -27,6 +25,10 @@ public class AdafruitServoDriver implements ServoDriver {
     public static final double CLOCK_FREQUENCY = 25 * 1000000;
     public static final double RESOLUTION = 4096;
 
+    private int mode1Value;
+    private int mode2Value;
+
+    private UpdateMode updateMode;
 
     private PCA9685Device[] devices;
     private int frequency;
@@ -36,7 +38,7 @@ public class AdafruitServoDriver implements ServoDriver {
       * registers. This avoids a lot of i2c overhead. To take advantage of
       * sequential writes the cache can cache state of previous writes to registers
      */
-    private int[] servoPositions; // the servo pulse position cache
+    private int[] servoCache; // the servo pulse position cache
 
     // TODO add some sort of lock on this object while reading to avoid updates while doing serial writes
     private SortedSet<ServoUpdateEvent> eventBuffer;
@@ -45,8 +47,9 @@ public class AdafruitServoDriver implements ServoDriver {
     public AdafruitServoDriver(PCA9685Device[] devices) {
         log.debug("Creating new servo driver {}", getDriverName());
         this.devices = devices;
-        this.servoPositions = new int[devices.length * PCA9685Device.NUMBER_CHANNELS];
+        this.servoCache = new int[devices.length * PCA9685Device.NUMBER_CHANNELS];
         eventBuffer = new TreeSet<>();
+        this.updateMode = UpdateMode.ALL;
     }
 
     @Override
@@ -72,10 +75,7 @@ public class AdafruitServoDriver implements ServoDriver {
 
             log.debug("Set mode 2 with only OUTDRV bit high: {}", PCA9685Device.OUTDRV);
             device.writeRegister(PCA9685Device.MODE2, (byte) PCA9685Device.OUTDRV);
-            log.debug("Set mode 1 with only ALLCALL bit high: {}", PCA9685Device.ALLCALL); // this sets oscillator on
-            device.writeRegister(PCA9685Device.MODE1, (byte) PCA9685Device.ALLCALL);
-            // with for oscillator to settle takes 500 micro seconds, 50 ms is way more than needed
-            sleep(50);
+            mode2Value = PCA9685Device.OUTDRV;
         }
     }
 
@@ -113,6 +113,7 @@ public class AdafruitServoDriver implements ServoDriver {
             newMode1 = oldMode1 & ~PCA9685Device.MODE1_SLEEP;
             log.debug("Writing the old value back to mode1 register with sleep off to start osc again: {}", Integer.toHexString(newMode1));
             device.writeRegister(PCA9685Device.MODE1, (byte) (newMode1));
+            mode1Value = newMode1;
             // wait for oscillator to restart
             sleep(50);
             newMode1 = oldMode1 | PCA9685Device.MODE1_RESTART;
@@ -161,46 +162,144 @@ public class AdafruitServoDriver implements ServoDriver {
 
     @Override
     public int flush() throws IOException {
-        int count = 0;
-        if(eventBuffer.size() < 4){
-            // better off doing single updates
-            for(ServoUpdateEvent event: eventBuffer){
-                updateSingleServo(event);
-                count ++;
-            }
-            eventBuffer.clear();
-        }else {
-            // call the update multi
-            count = updateMultipleServos();
-            eventBuffer.clear();
+        int updateCount = 0;
+        switch (updateMode) {
+            case SINGLE:
+                for (ServoUpdateEvent event : eventBuffer) {
+                    updateCount += updateSingleServo(event);
+                }
+                break;
+            case ALL:
+                updateCount += updateAllServos();
+                break;
+            default:
+                log.error("Unknown update mode");
         }
-        return count;
+        eventBuffer.clear();
+        return updateCount;
     }
 
-    private void updateSingleServo(ServoUpdateEvent servoUpdate) throws IOException {
+    private int updateSingleServo(ServoUpdateEvent servoUpdate) throws IOException {
         // update cache first
         if (isMoved(servoUpdate)) {
             // only send update to servo if its position has actually moved.
-            cacheServo(servoUpdate);
-            int servoChannel = servoUpdate.getServo().getServoConfig().getChannel();
-            int pulseLength = servoUpdate.getServo().getPulseLength(servoUpdate.getAngle());
+            cacheServoPosition(servoUpdate);
+            int servoChannel = servoUpdate.getChannel();
+            int pulseLength = servoUpdate.getPulseLength();
 
             // calc num counts for ms
-            long count = Math.round(pulseLength * RESOLUTION / ((double) 1 / (double) getPulseFrequency()) / (double) 1000000);
+            int count = getCountForPulseLength(pulseLength);
 
             log.debug("Updating servo position: {}, count: {}", servoUpdate.toString(), count);
 
-            byte[] offBytes = ByteUtils.get2ByteInt((int) count);
+            byte[] offBytes = ByteUtils.get2ByteInt(count);
             PCA9685Device device = getDevice(servoChannel);
             device.writeRegister(getRegisterForChannel(servoChannel, Register.ON_LOW), (byte) 0x00);
             device.writeRegister(getRegisterForChannel(servoChannel, Register.ON_HIGH), (byte) 0x00);
             device.writeRegister(getRegisterForChannel(servoChannel, Register.OFF_LOW), offBytes[ByteUtils.LOW_BYTE]);
             device.writeRegister(getRegisterForChannel(servoChannel, Register.OFF_HIGH), offBytes[ByteUtils.HIGH_BYTE]);
+            return 1;
+        }else{
+            // didn't update any
+            return 0;
         }
     }
 
-    private int updateMultipleServos() {
-        return 0;
+    /**
+     * This method updates multiple servos in one byte stream taking advantge of
+     * PCA9685 auto register increment to send bytes in one stream saving time
+     * Bytes must be for contiguous registers
+     * @return
+     */
+    private int updateAllServos() throws IOException {
+
+        int updateCount = 0;
+
+        while(!eventBuffer.isEmpty()) {
+            // get the device for the first update
+            ServoUpdateEvent nextEvent = eventBuffer.first();
+            int firstChannel = nextEvent.getChannel();
+            int deviceOffset = getDeviceOffset(firstChannel);
+            // if this servo is on the second device it's devicechannel will be channel - 1 x number_channels
+            PCA9685Device device = getDevice(firstChannel);
+            // set mode 1 bit 5 to on for auto increment
+            updateCount += updateDevice(device, deviceOffset);
+        }
+        return updateCount;
+    }
+
+    private int updateDevice(PCA9685Device device, int deviceOffset) throws IOException{
+        int updateCount = 0;
+
+        // which device
+        byte[] bytes = getRegisterBuffer();
+        // todo don't forget to set register 0 and 1
+        bytes[0] = (byte)mode1Value;
+        bytes[1] = (byte)mode2Value;
+        bytes[0] |= PCA9685Device.MODE1_AUTO_INCREMENT;
+        mode1Value = bytes[0];
+        // prepare registers
+        for(int i = 6; i < 69; i+=4){
+            int deviceServoChannel = (i - 6) / 4;
+            // set first two bytes to zero. Still setting on bytes to zero
+            bytes[i] = (byte)0x00;
+            bytes[i + 1] = (byte)0x00;
+            ServoUpdateEvent event = null;
+            if (!eventBuffer.isEmpty()) {
+                event = eventBuffer.first();
+                int eventChannel = event.getChannel() - deviceOffset;
+                if (eventChannel == deviceServoChannel) {
+                    // update event in buffer is for this channel
+                    if(log.isTraceEnabled()) {
+                        log.trace("Updating servo: {} count: {}", deviceServoChannel, event.getPulseLength());
+                    }
+                    cacheServoPosition(event);
+                    int count = getCountForPulseLength(event.getPulseLength());
+                    byte[] posistionBytes = ByteUtils.get2ByteInt(count);
+                    bytes[i + 2] = posistionBytes[ByteUtils.LOW_BYTE];
+                    bytes[i + 3] = posistionBytes[ByteUtils.HIGH_BYTE];
+                    eventBuffer.remove(event);
+                    updateCount++;
+                }
+            }else{
+                // update event is not for this channel check the cache for this channel or fill with zero
+                int cachedPosition = getCachedServoPosition(deviceServoChannel);
+                if(log.isTraceEnabled()) {
+                    log.trace("Updating servo: {} with cached count: {}", deviceServoChannel, cachedPosition);
+                }
+                int count = getCountForPulseLength(cachedPosition);
+                byte[] positionBytes = ByteUtils.get2ByteInt(count);
+                bytes[i + 2] = positionBytes[ByteUtils.LOW_BYTE];
+                bytes[i + 3] = positionBytes[ByteUtils.HIGH_BYTE];
+            }
+        }
+        // write bytes starting with start register then rest of bytes
+        device.writeRegisters(0, bytes);
+        return updateCount;
+    }
+
+    public int getDeviceOffset(int servoChannel){
+        // if this servo is on the second device it's devicechannel will be channel - 1 x number_channels
+        return (servoChannel/PCA9685Device.NUMBER_CHANNELS) * PCA9685Device.NUMBER_CHANNELS;
+    }
+
+    private int getCountForPulseLength(int pulseLength){
+        return (int) Math.round(pulseLength * RESOLUTION / ((double) 1 / (double) getPulseFrequency()) / (double) 1000000);
+    }
+
+
+    private byte[] getRegisterBuffer(){
+        byte[] bytes = new byte[70];
+
+        bytes[0] = (byte)mode1Value;
+        bytes[1] = (byte)mode2Value;  // todo this value is not getting replaced
+        // Subaddresses are programmable through the I2C-bus. Default power-up values are E2h, E4h, E8h,
+        bytes[2] = (byte)0xE2;
+        bytes[3] = (byte)0xE4;
+        bytes[4] = (byte)0xE8;
+        bytes[5] = (byte)0xE0;
+
+        return bytes;
     }
 
     /**
@@ -215,13 +314,17 @@ public class AdafruitServoDriver implements ServoDriver {
     }
 
     private boolean isMoved(ServoUpdateEvent servoUpdate) {
-        int cachedPosition = servoPositions[servoUpdate.getServo().getServoConfig().getChannel()];
-        return cachedPosition != servoUpdate.getServo().getPulseLength(servoUpdate.getAngle());
+        int cachedPosition = getCachedServoPosition(servoUpdate.getChannel());
+        return cachedPosition != servoUpdate.getPulseLength();
     }
 
-    private void cacheServo(ServoUpdateEvent servoUpdate) {
-        int servoChannel = servoUpdate.getServo().getServoConfig().getChannel();
-        servoPositions[servoChannel] = servoUpdate.getServo().getPulseLength(servoUpdate.getAngle());
+    private void cacheServoPosition(ServoUpdateEvent servoUpdate) {
+        int servoChannel = servoUpdate.getChannel();
+        servoCache[servoChannel] = servoUpdate.getPulseLength();
+    }
+
+    private int getCachedServoPosition(int channel){
+        return servoCache[channel];
     }
 
     /**
@@ -231,7 +334,7 @@ public class AdafruitServoDriver implements ServoDriver {
      * @param register
      * @return
      */
-    private int getRegisterForChannel(int channel, Register register) {
+    public int getRegisterForChannel(int channel, Register register) {
         int registerAddress = (4 * channel) + (register.value + PCA9685Device.LED0_ON_LOW); // LED0_ON_HIGH is first of sequence of registers;
         return registerAddress;
     }
@@ -244,7 +347,7 @@ public class AdafruitServoDriver implements ServoDriver {
         }
     }
 
-    private enum Register {
+    enum Register {
         ON_LOW(0),
         ON_HIGH(1),
         OFF_LOW(2),
@@ -261,4 +364,6 @@ public class AdafruitServoDriver implements ServoDriver {
         }
 
     }
+
+    enum UpdateMode{ SINGLE, ALL}
 }

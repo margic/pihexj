@@ -10,13 +10,13 @@ import java.util.List;
  */
 public interface ServoDriver {
 
-    public static final String PWM_FREQUENCY_PROP = "com.margic.pwm.frequency";
-    public static final int DEFAULT_PWM_FREQUENCY = 50;
+    static final String PWM_FREQUENCY_PROP = "com.margic.pwm.frequency";
+    static final int DEFAULT_PWM_FREQUENCY = 50;
 
     /**
      * @return String name of servo driver implementation
      */
-    public String getDriverName();
+    String getDriverName();
 
     /**
      * set the pwm interval typically every 20ms is typical
@@ -24,7 +24,7 @@ public interface ServoDriver {
      *
      * @param frequency the frequency in hertz
      */
-    public void setPulseFrequency(int frequency) throws IOException;
+    void setPulseFrequency(int frequency) throws IOException;
 
     /**
      * sets the pulse length for a single servo
@@ -37,21 +37,21 @@ public interface ServoDriver {
      *
      * @param servo an implementation of the servo interface
      */
-    public void updateServo(ServoUpdateEvent servo) throws IOException;
+    void updateServo(ServoUpdateEvent servo) throws IOException;
 
     /**
      * flushes updates to servo devices
      * @return the number of servos updated
      * @throws IOException
      */
-    public int flush() throws IOException;
+    int flush() throws IOException;
 
     /**
      * Hook to initialize the servo driver
      *
      * @throws IOException
      */
-    public void init() throws IOException;
+     void init() throws IOException;
 
 
 }

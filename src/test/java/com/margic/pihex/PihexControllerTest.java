@@ -22,7 +22,7 @@ public class PihexControllerTest {
 
     @Before
     public void before(){
-        controller = new PiHexController(new Body(), new AdafruitServoDriver(new PCA9685Device[]{new MockPCA9685Device()}));
+        controller = new PiHexController(new Body(), new AdafruitServoDriver(new PCA9685Device[]{new MockPCA9685Device("Mock Device")}));
     }
 
     @Test

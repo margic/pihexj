@@ -23,16 +23,15 @@ public class ServoUpdateEvent implements Comparable{
         return angle;
     }
 
+    public int getPulseLength() {
+        return servo.getPulseLength(angle);
+    }
     public void setAngle(int angle) {
         this.angle = angle;
     }
 
-    public Servo getServo() {
-        return servo;
-    }
-
-    public void setServo(Servo servo) {
-        this.servo = servo;
+    public int getChannel(){
+        return servo.getServoConfig().getChannel();
     }
 
     @Override

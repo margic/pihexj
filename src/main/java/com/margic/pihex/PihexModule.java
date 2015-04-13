@@ -13,6 +13,7 @@ import com.margic.pihex.api.Controller;
 import com.margic.pihex.api.ServoDriver;
 import com.margic.pihex.camel.context.CustomCamelContext;
 import com.margic.pihex.camel.context.GuiceRegistry;
+import com.margic.pihex.event.FlushServoUpdateEvent;
 import com.margic.pihex.model.Body;
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
@@ -49,6 +50,7 @@ public class PihexModule extends AbstractModule {
         bind(EventBus.class).annotatedWith(Names.named("eventBus")).toInstance(new AsyncEventBus(Executors.newSingleThreadExecutor()));
         bind(Controller.class).annotatedWith(Names.named("controller")).to(PiHexController.class).in(Singleton.class);
         bind(Body.class).annotatedWith((Names.named("body"))).to(Body.class).in(Singleton.class);
+        bind(FlushServoUpdateEvent.class).annotatedWith((Names.named("flushEvent"))).toInstance(new FlushServoUpdateEvent());
         bind(StartupListener.class).to(com.margic.pihex.camel.context.StartupListener.class);
         bind(Registry.class).to(GuiceRegistry.class).in(Singleton.class);
         bind(CamelContext.class).to(CustomCamelContext.class).in(Singleton.class);
@@ -73,9 +75,11 @@ public class PihexModule extends AbstractModule {
             Putting this in here to load mock based on property for convenience
             will figure out better way later
          */
-        PCA9685Device pca9685Device = null;
+        PCA9685Device[] devices;
         if (config.getBoolean("com.margic.pihex.useMock", false)) {
-            pca9685Device = new MockPCA9685Device();
+            devices = new PCA9685Device[2];
+            devices[0] = new MockPCA9685Device("Mock 1");
+            devices[1] = new MockPCA9685Device("Mock 2");
         } else {
             I2CDevice device = null;
             try {
@@ -85,9 +89,10 @@ public class PihexModule extends AbstractModule {
                 log.error("Unable to get I2CDevice", ioe);
                 return null;
             }
-            pca9685Device = new AdaPCA9685Device(device);
+            devices = new PCA9685Device[1];
+            devices[0] = new AdaPCA9685Device(device, "Adafruit PCA9685 device at 0x40");
         }
-        AdafruitServoDriver servoDriver = new AdafruitServoDriver(new PCA9685Device[]{pca9685Device});
+        AdafruitServoDriver servoDriver = new AdafruitServoDriver(devices);
 
         try {
             int pwmFreq = config.getInt(ServoDriver.PWM_FREQUENCY_PROP, ServoDriver.DEFAULT_PWM_FREQUENCY);

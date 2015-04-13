@@ -43,6 +43,8 @@ public class StartupRouteBuilder extends RouteBuilder {
                 .choice()
                     .when(exchangeProperty("CamelBatchComplete").isEqualTo(true))
                     .log(LoggingLevel.INFO, "Loaded all servo conf files stopping loader")
+                    .setBody(simple("ref:flushEvent"))
+                    .to("guava-eventbus:eventBus")
                     .process(new StopProcessor())
                 .endChoice();
     }

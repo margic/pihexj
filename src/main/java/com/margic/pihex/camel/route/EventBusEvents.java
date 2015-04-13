@@ -1,10 +1,7 @@
 package com.margic.pihex.camel.route;
 
 import com.google.common.eventbus.Subscribe;
-import com.margic.pihex.event.ControlEvent;
-import com.margic.pihex.event.SensorInterruptEvent;
-import com.margic.pihex.event.ServoUpdateEvent;
-import com.margic.pihex.event.StartupEvent;
+import com.margic.pihex.event.*;
 
 /**
  * Created by paulcrofts on 3/26/15.
@@ -42,5 +39,8 @@ public interface EventBusEvents {
 
     @Subscribe
     public void startUpEvent(StartupEvent startupEvent);
+
+    @Subscribe
+    public void flushServoUpdates(FlushServoUpdateEvent flushEvent);
 
 }

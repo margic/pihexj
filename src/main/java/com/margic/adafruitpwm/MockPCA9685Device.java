@@ -19,55 +19,55 @@ public class MockPCA9685Device implements PCA9685Device {
 
     private static Logger log = LoggerFactory.getLogger(MockPCA9685Device.class);
 
-    private static String NAME = "Mock PCA9685 device";
-
     private byte[] registers;
     private ByteArrayOutputStream byteStream;
 
-    public MockPCA9685Device() {
+    private String name;
+
+    public MockPCA9685Device(String name) {
+        this.name = name;
+
         // device has 256 registers
         this.registers = new byte[256];
 
         // create a byte stream store bytes written to device
         this.byteStream = new ByteArrayOutputStream(1024);
 
-        //this.registers[MODE1] = (byte)0x11; // set the default value for mode1
-        //this.registers[MODE2] = (byte)0x04;
+        // set the defaults value first registers
+        this.registers[MODE1] = (byte)0x11; // set the default value for mode1
+        this.registers[MODE2] = (byte)0x04;
+        this.registers[SUBADR1] = (byte)0xE2;
+        this.registers[SUBADR2] = (byte)0xE4;
+        this.registers[SUBADR3] = (byte)0xE8;
+        this.registers[ALLCALLADR] = (byte)0xE0;
+
         dumpRegisters();
      }
 
     @Override
     public String getDeviceName() {
-        return NAME;
+        return name;
     }
 
 
     @Override
     public void writeRegister(int address, byte value) {
         log.trace("Write register: {} value: {}", address, ByteUtils.byte2Hex(value));
-        if(address >= ALL_LED_ON_L && address <= ALL_LED_OFF_H){
+        if (address >= ALL_LED_ON_L && address <= ALL_LED_OFF_H) {
             log.debug("Set all write");
 
-            for(int i = (address - 244); i < 70; i+=4){
+            for (int i = (address - 244); i < 70; i += 4) {
                 registers[i] = value;
             }
-        }else {
+        } else {
             registers[address] = value;
         }
         byteStream.write(address);
         byteStream.write(value);
-
-
-
-    }
-
-    private void writeAll(int address, byte value){
-
     }
 
     @Override
-    public void writeRegisters(int startAddress, byte[] values) {
-        int address = startAddress;
+    public void writeRegisters(int address, byte[] values) {
         for (byte value : values) {
             writeRegister(address, value);
             address++;
