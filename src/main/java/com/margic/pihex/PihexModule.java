@@ -92,7 +92,7 @@ public class PihexModule extends AbstractModule {
             devices = new PCA9685Device[1];
             devices[0] = new AdaPCA9685Device(device, "Adafruit PCA9685 device at 0x40");
         }
-        AdafruitServoDriver servoDriver = new AdafruitServoDriver(devices);
+        AdafruitServoDriver servoDriver = new AdafruitServoDriver(devices, true);
 
         try {
             int pwmFreq = config.getInt(ServoDriver.PWM_FREQUENCY_PROP, ServoDriver.DEFAULT_PWM_FREQUENCY);

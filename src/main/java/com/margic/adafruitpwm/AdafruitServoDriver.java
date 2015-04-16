@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -25,10 +27,11 @@ public class AdafruitServoDriver implements ServoDriver {
     public static final double CLOCK_FREQUENCY = 25 * 1000000;
     public static final double RESOLUTION = 4096;
 
+    private boolean updateSequencial;
+
+
     private int mode1Value;
     private int mode2Value;
-
-    private UpdateMode updateMode;
 
     private PCA9685Device[] devices;
     private int frequency;
@@ -40,16 +43,25 @@ public class AdafruitServoDriver implements ServoDriver {
      */
     private int[] servoCache; // the servo pulse position cache
 
-    // TODO add some sort of lock on this object while reading to avoid updates while doing serial writes
+    // TODO add some sort of lock on this object while reading to avoid updates while doing serial writes consider cloning before flush
     private SortedSet<ServoUpdateEvent> eventBuffer;
 
+    /**
+     * Creates a new driver with an array of devices to allow multiples of NUM_CHANNELS
+     * The servo driver can work in two different modes. update sequences of servos or update
+     * single servos at a time. These are currently exclusive modes. It is inefficient to switch
+     * between modes at run time do the the setting required on the mode one register.
+     *
+     * @param devices
+     * @param updateSequencial
+     */
     @Inject
-    public AdafruitServoDriver(PCA9685Device[] devices) {
+    public AdafruitServoDriver(PCA9685Device[] devices, boolean updateSequencial) {
         log.debug("Creating new servo driver {}", getDriverName());
         this.devices = devices;
         this.servoCache = new int[devices.length * PCA9685Device.NUMBER_CHANNELS];
         eventBuffer = new TreeSet<>();
-        this.updateMode = UpdateMode.ALL;
+        this.updateSequencial = updateSequencial;
     }
 
     @Override
@@ -76,6 +88,13 @@ public class AdafruitServoDriver implements ServoDriver {
             log.debug("Set mode 2 with only OUTDRV bit high: {}", PCA9685Device.OUTDRV);
             device.writeRegister(PCA9685Device.MODE2, (byte) PCA9685Device.OUTDRV);
             mode2Value = PCA9685Device.OUTDRV;
+
+
+            if(updateSequencial) {
+                log.debug("Servo driver mod is sequencial, enable the auto increment flag on mode 1 register");
+                mode1Value |= PCA9685Device.MODE1_AUTO_INCREMENT;
+                device.writeRegister(PCA9685Device.MODE1, (byte) mode1Value);
+            }
         }
     }
 
@@ -163,17 +182,12 @@ public class AdafruitServoDriver implements ServoDriver {
     @Override
     public int flush() throws IOException {
         int updateCount = 0;
-        switch (updateMode) {
-            case SINGLE:
-                for (ServoUpdateEvent event : eventBuffer) {
-                    updateCount += updateSingleServo(event);
-                }
-                break;
-            case ALL:
-                updateCount += updateAllServos();
-                break;
-            default:
-                log.error("Unknown update mode");
+        if(updateSequencial) {
+            updateCount += updateAllServos();
+        }else {
+            for (ServoUpdateEvent event : eventBuffer) {
+                updateCount += updateSingleServo(event);
+            }
         }
         eventBuffer.clear();
         return updateCount;
@@ -221,8 +235,8 @@ public class AdafruitServoDriver implements ServoDriver {
             int firstChannel = nextEvent.getChannel();
             int deviceOffset = getDeviceOffset(firstChannel);
             // if this servo is on the second device it's devicechannel will be channel - 1 x number_channels
+            // which device
             PCA9685Device device = getDevice(firstChannel);
-            // set mode 1 bit 5 to on for auto increment
             updateCount += updateDevice(device, deviceOffset);
         }
         return updateCount;
@@ -231,52 +245,137 @@ public class AdafruitServoDriver implements ServoDriver {
     private int updateDevice(PCA9685Device device, int deviceOffset) throws IOException{
         int updateCount = 0;
 
-        // which device
-        byte[] bytes = getRegisterBuffer();
-        // todo don't forget to set register 0 and 1
-        bytes[0] = (byte)mode1Value;
-        bytes[1] = (byte)mode2Value;
-        bytes[0] |= PCA9685Device.MODE1_AUTO_INCREMENT;
-        mode1Value = bytes[0];
+        List<RegisterValue> registerValues = new ArrayList<>();
+        //byte[] bytes = getRegisterBuffer();
+//        // todo don't forget to set register 0 and 1
+//        bytes[0] = (byte)mode1Value;
+//        bytes[1] = (byte)mode2Value;
+//        bytes[0] |= PCA9685Device.MODE1_AUTO_INCREMENT;
+//        mode1Value = bytes[0];
         // prepare registers
-        for(int i = 6; i < 69; i+=4){
-            int deviceServoChannel = (i - 6) / 4;
+
+        // get the first servo channel
+        int firstEventChannel = eventBuffer.first().getChannel();
+        // get the register address of this first channel need this to address the update I2C bus
+        int firstRegisterAddress = getRegisterForChannel(firstEventChannel, Register.ON_LOW);
+        int deviceChannel = firstEventChannel - deviceOffset;
+
+        //loop through registers represented by i
+        while(deviceChannel < PCA9685Device.NUMBER_CHANNELS && isMoreEventsForDevice(deviceOffset)) {
+            RegisterValue registerValue = new RegisterValue();
+
             // set first two bytes to zero. Still setting on bytes to zero
-            bytes[i] = (byte)0x00;
-            bytes[i + 1] = (byte)0x00;
+            // set low then high
+            registerValue.setOnLowByte((byte) 0x00);
+            registerValue.setOnHightByte((byte) 0x00);
+
             ServoUpdateEvent event = null;
             if (!eventBuffer.isEmpty()) {
                 event = eventBuffer.first();
                 int eventChannel = event.getChannel() - deviceOffset;
-                if (eventChannel == deviceServoChannel) {
+                if (eventChannel == deviceChannel) {
                     // update event in buffer is for this channel
-                    if(log.isTraceEnabled()) {
-                        log.trace("Updating servo: {} count: {}", deviceServoChannel, event.getPulseLength());
+                    if (log.isTraceEnabled()) {
+                        log.trace("Updating servo: {} count: {}", deviceChannel, event.getPulseLength());
                     }
                     cacheServoPosition(event);
                     int count = getCountForPulseLength(event.getPulseLength());
                     byte[] posistionBytes = ByteUtils.get2ByteInt(count);
-                    bytes[i + 2] = posistionBytes[ByteUtils.LOW_BYTE];
-                    bytes[i + 3] = posistionBytes[ByteUtils.HIGH_BYTE];
+                    registerValue.setOffLowByte(posistionBytes[ByteUtils.LOW_BYTE]);
+                    registerValue.setOffHighByte(posistionBytes[ByteUtils.HIGH_BYTE]);
                     eventBuffer.remove(event);
-                    updateCount++;
+                } else {
+                    // update event is not for this channel check the cache for this channel or fill with zero
+                    int cachedPosition = getCachedServoPosition(deviceChannel);
+                    if (log.isTraceEnabled()) {
+                        log.trace("Updating servo: {} with cached count: {}", deviceChannel, cachedPosition);
+                    }
+                    int count = getCountForPulseLength(cachedPosition);
+                    byte[] positionBytes = ByteUtils.get2ByteInt(count);
+                    registerValue.setOffLowByte(positionBytes[ByteUtils.LOW_BYTE]);
+                    registerValue.setOffHighByte(positionBytes[ByteUtils.HIGH_BYTE]);
                 }
-            }else{
-                // update event is not for this channel check the cache for this channel or fill with zero
-                int cachedPosition = getCachedServoPosition(deviceServoChannel);
-                if(log.isTraceEnabled()) {
-                    log.trace("Updating servo: {} with cached count: {}", deviceServoChannel, cachedPosition);
-                }
-                int count = getCountForPulseLength(cachedPosition);
-                byte[] positionBytes = ByteUtils.get2ByteInt(count);
-                bytes[i + 2] = positionBytes[ByteUtils.LOW_BYTE];
-                bytes[i + 3] = positionBytes[ByteUtils.HIGH_BYTE];
+                registerValues.add(registerValue);
+                deviceChannel++;
+                updateCount++;
             }
         }
+        // build the array of bytes for the write.
+
+        byte[] bytes = new byte[registerValues.size() * 4];
+        int index = -1;
+        for(RegisterValue value: registerValues){
+            bytes[++index] = value.getOnLowByte();
+            bytes[++index] = value.getOnHightByte();
+            bytes[++index] = value.getOffLowByte();
+            bytes[++index] = value.getOffHighByte();
+        }
+
         // write bytes starting with start register then rest of bytes
-        device.writeRegisters(0, bytes);
+        device.writeRegisters(firstRegisterAddress, bytes);
         return updateCount;
     }
+
+    private boolean isMoreEventsForDevice(int deviceOffset){
+        boolean answer = false;
+        if(!eventBuffer.isEmpty()){
+            int deviceChannel = eventBuffer.first().getChannel() - deviceOffset;
+            if(deviceChannel < PCA9685Device.NUMBER_CHANNELS){
+                answer = true;
+            }
+        }
+        return answer;
+    }
+
+//    private int updateAllRegistersDevice(PCA9685Device device, int deviceOffset) throws IOException{
+//        int updateCount = 0;
+//
+//        // which device
+//        byte[] bytes = getRegisterBuffer();
+//        // todo don't forget to set register 0 and 1
+//        bytes[0] = (byte)mode1Value;
+//        bytes[1] = (byte)mode2Value;
+//        bytes[0] |= PCA9685Device.MODE1_AUTO_INCREMENT;
+//        mode1Value = bytes[0];
+//        // prepare registers
+//        for(int i = 6; i < 69; i+=4){
+//            int deviceServoChannel = (i - 6) / 4;
+//            // set first two bytes to zero. Still setting on bytes to zero
+//            bytes[i] = (byte)0x00;
+//            bytes[i + 1] = (byte)0x00;
+//            ServoUpdateEvent event = null;
+//            if (!eventBuffer.isEmpty()) {
+//                event = eventBuffer.first();
+//                int eventChannel = event.getChannel() - deviceOffset;
+//                if (eventChannel == deviceServoChannel) {
+//                    // update event in buffer is for this channel
+//                    if(log.isTraceEnabled()) {
+//                        log.trace("Updating servo: {} count: {}", deviceServoChannel, event.getPulseLength());
+//                    }
+//                    cacheServoPosition(event);
+//                    int count = getCountForPulseLength(event.getPulseLength());
+//                    byte[] posistionBytes = ByteUtils.get2ByteInt(count);
+//                    bytes[i + 2] = posistionBytes[ByteUtils.LOW_BYTE];
+//                    bytes[i + 3] = posistionBytes[ByteUtils.HIGH_BYTE];
+//                    eventBuffer.remove(event);
+//                    updateCount++;
+//                }
+//            }else{
+//                // update event is not for this channel check the cache for this channel or fill with zero
+//                int cachedPosition = getCachedServoPosition(deviceServoChannel);
+//                if(log.isTraceEnabled()) {
+//                    log.trace("Updating servo: {} with cached count: {}", deviceServoChannel, cachedPosition);
+//                }
+//                int count = getCountForPulseLength(cachedPosition);
+//                byte[] positionBytes = ByteUtils.get2ByteInt(count);
+//                bytes[i + 2] = positionBytes[ByteUtils.LOW_BYTE];
+//                bytes[i + 3] = positionBytes[ByteUtils.HIGH_BYTE];
+//            }
+//        }
+//        // write bytes starting with start register then rest of bytes
+//        device.writeRegisters(0, bytes);
+//        return updateCount;
+//    }
 
     public int getDeviceOffset(int servoChannel){
         // if this servo is on the second device it's devicechannel will be channel - 1 x number_channels
@@ -352,18 +451,51 @@ public class AdafruitServoDriver implements ServoDriver {
         ON_HIGH(1),
         OFF_LOW(2),
         OFF_HIGH(3);
-
         private final int value;
-
         Register(int value) {
             this.value = value;
         }
-
         int value() {
             return value;
         }
-
     }
 
-    enum UpdateMode{ SINGLE, ALL}
+    class RegisterValue{
+        private byte onLowByte;
+        private byte onHightByte;
+        private byte offLowByte;
+        private byte offHighByte;
+
+        public void setOnLowByte(byte onLowByte) {
+            this.onLowByte = onLowByte;
+        }
+
+        public void setOnHightByte(byte onHightByte) {
+            this.onHightByte = onHightByte;
+        }
+
+        public void setOffLowByte(byte offLowByte) {
+            this.offLowByte = offLowByte;
+        }
+
+        public void setOffHighByte(byte offHighByte) {
+            this.offHighByte = offHighByte;
+        }
+
+        public byte getOnLowByte() {
+            return onLowByte;
+        }
+
+        public byte getOnHightByte() {
+            return onHightByte;
+        }
+
+        public byte getOffLowByte() {
+            return offLowByte;
+        }
+
+        public byte getOffHighByte() {
+            return offHighByte;
+        }
+    }
 }

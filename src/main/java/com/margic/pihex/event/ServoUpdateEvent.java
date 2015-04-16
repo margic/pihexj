@@ -62,8 +62,9 @@ public class ServoUpdateEvent implements Comparable{
     @Override
     public int compareTo(Object o) {
         ServoUpdateEvent myClass = (ServoUpdateEvent) o;
-        return new CompareToBuilder()
+        int answer = new CompareToBuilder()
                 .append(this.servo.getServoConfig().getChannel(), myClass.servo.getServoConfig().getChannel())
                 .toComparison();
+        return answer;
     }
 }
