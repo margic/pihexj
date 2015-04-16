@@ -246,13 +246,6 @@ public class AdafruitServoDriver implements ServoDriver {
         int updateCount = 0;
 
         List<RegisterValue> registerValues = new ArrayList<>();
-        //byte[] bytes = getRegisterBuffer();
-//        // todo don't forget to set register 0 and 1
-//        bytes[0] = (byte)mode1Value;
-//        bytes[1] = (byte)mode2Value;
-//        bytes[0] |= PCA9685Device.MODE1_AUTO_INCREMENT;
-//        mode1Value = bytes[0];
-        // prepare registers
 
         // get the first servo channel
         int firstEventChannel = eventBuffer.first().getChannel();
@@ -327,56 +320,6 @@ public class AdafruitServoDriver implements ServoDriver {
         return answer;
     }
 
-//    private int updateAllRegistersDevice(PCA9685Device device, int deviceOffset) throws IOException{
-//        int updateCount = 0;
-//
-//        // which device
-//        byte[] bytes = getRegisterBuffer();
-//        // todo don't forget to set register 0 and 1
-//        bytes[0] = (byte)mode1Value;
-//        bytes[1] = (byte)mode2Value;
-//        bytes[0] |= PCA9685Device.MODE1_AUTO_INCREMENT;
-//        mode1Value = bytes[0];
-//        // prepare registers
-//        for(int i = 6; i < 69; i+=4){
-//            int deviceServoChannel = (i - 6) / 4;
-//            // set first two bytes to zero. Still setting on bytes to zero
-//            bytes[i] = (byte)0x00;
-//            bytes[i + 1] = (byte)0x00;
-//            ServoUpdateEvent event = null;
-//            if (!eventBuffer.isEmpty()) {
-//                event = eventBuffer.first();
-//                int eventChannel = event.getChannel() - deviceOffset;
-//                if (eventChannel == deviceServoChannel) {
-//                    // update event in buffer is for this channel
-//                    if(log.isTraceEnabled()) {
-//                        log.trace("Updating servo: {} count: {}", deviceServoChannel, event.getPulseLength());
-//                    }
-//                    cacheServoPosition(event);
-//                    int count = getCountForPulseLength(event.getPulseLength());
-//                    byte[] posistionBytes = ByteUtils.get2ByteInt(count);
-//                    bytes[i + 2] = posistionBytes[ByteUtils.LOW_BYTE];
-//                    bytes[i + 3] = posistionBytes[ByteUtils.HIGH_BYTE];
-//                    eventBuffer.remove(event);
-//                    updateCount++;
-//                }
-//            }else{
-//                // update event is not for this channel check the cache for this channel or fill with zero
-//                int cachedPosition = getCachedServoPosition(deviceServoChannel);
-//                if(log.isTraceEnabled()) {
-//                    log.trace("Updating servo: {} with cached count: {}", deviceServoChannel, cachedPosition);
-//                }
-//                int count = getCountForPulseLength(cachedPosition);
-//                byte[] positionBytes = ByteUtils.get2ByteInt(count);
-//                bytes[i + 2] = positionBytes[ByteUtils.LOW_BYTE];
-//                bytes[i + 3] = positionBytes[ByteUtils.HIGH_BYTE];
-//            }
-//        }
-//        // write bytes starting with start register then rest of bytes
-//        device.writeRegisters(0, bytes);
-//        return updateCount;
-//    }
-
     public int getDeviceOffset(int servoChannel){
         // if this servo is on the second device it's devicechannel will be channel - 1 x number_channels
         return (servoChannel/PCA9685Device.NUMBER_CHANNELS) * PCA9685Device.NUMBER_CHANNELS;
@@ -384,21 +327,6 @@ public class AdafruitServoDriver implements ServoDriver {
 
     private int getCountForPulseLength(int pulseLength){
         return (int) Math.round(pulseLength * RESOLUTION / ((double) 1 / (double) getPulseFrequency()) / (double) 1000000);
-    }
-
-
-    private byte[] getRegisterBuffer(){
-        byte[] bytes = new byte[70];
-
-        bytes[0] = (byte)mode1Value;
-        bytes[1] = (byte)mode2Value;  // todo this value is not getting replaced
-        // Subaddresses are programmable through the I2C-bus. Default power-up values are E2h, E4h, E8h,
-        bytes[2] = (byte)0xE2;
-        bytes[3] = (byte)0xE4;
-        bytes[4] = (byte)0xE8;
-        bytes[5] = (byte)0xE0;
-
-        return bytes;
     }
 
     /**
