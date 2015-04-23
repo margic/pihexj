@@ -21,5 +21,5 @@ reflects the current state of development and is changing frequently.
 </p>
 
 <p>
-Check out the blog --> http://pihex.blogspot.com/
+Check out the blog --> http://www.margic.com/
 </p>
